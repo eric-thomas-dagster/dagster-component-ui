@@ -613,7 +613,7 @@ export function Home() {
           <h2 style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-dim)", margin: "0 0 12px" }}>
             Ready to get started?
           </h2>
-          <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", maxWidth: 760, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", lineHeight: 1.6 }}>
             Install{" "}
             <a href={COMMUNITY_CLI_REPO_WEB} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
               dagster-community-components-cli
@@ -623,7 +623,7 @@ export function Home() {
             component page to substitute its id for{" "}
             <code className="mono" style={{ fontSize: 13 }}>{CLI_HOME_PLACEHOLDER_COMPONENT_ID}</code>.
           </p>
-          <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", maxWidth: 760, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", lineHeight: 1.6 }}>
             {COMMUNITY_CLI_VALUE_PROP}
           </p>
           <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", margin: "0 0 6px", letterSpacing: "0.04em" }}>
@@ -639,7 +639,7 @@ export function Home() {
               borderRadius: 12,
               border: "1px solid var(--border)",
               background: "var(--bg-card)",
-              maxWidth: 720,
+              width: "100%",
               marginBottom: 14,
             }}
           >
@@ -661,7 +661,7 @@ export function Home() {
               borderRadius: 12,
               border: "1px solid var(--border)",
               background: "var(--bg-card)",
-              maxWidth: 720,
+              width: "100%",
               marginBottom: 14,
             }}
           >
@@ -683,7 +683,7 @@ export function Home() {
               borderRadius: 12,
               border: "1px solid var(--border)",
               background: "var(--bg-card)",
-              maxWidth: 720,
+              width: "100%",
             }}
           >
             <code className="mono" style={{ fontSize: 13, color: "var(--text-muted)", flex: "1 1 200px" }}>
@@ -691,7 +691,7 @@ export function Home() {
             </code>
             <CopyButton text={pipInstallDagsterCore()} label="Copy" />
           </div>
-          <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "10px 0 0", lineHeight: 1.5, maxWidth: 720 }}>
+          <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "10px 0 0", lineHeight: 1.5 }}>
             {INSTALL_PYPI_NOTE} {INSTALL_VERSION_NOTE}
           </p>
         </section>
