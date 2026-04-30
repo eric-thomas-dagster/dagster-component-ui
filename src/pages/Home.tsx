@@ -627,7 +627,12 @@ export function Home() {
             {COMMUNITY_CLI_VALUE_PROP}
           </p>
           <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", margin: "0 0 6px", letterSpacing: "0.04em" }}>
-            Recommended — uvx (no CLI install)
+            Recommended — uvx (no permanent CLI install)
+          </p>
+          <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "0 0 10px", lineHeight: 1.5 }}>
+            uvx runs the real <span className="mono">dagster-component</span> in an isolated one-off environment (uv may
+            cache the download)—same commands as a pip install, but nothing is added to your project venv. Use pip below
+            when you want the CLI installed in your environment.
           </p>
           <div
             style={{
