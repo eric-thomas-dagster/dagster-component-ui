@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Search } from "lucide-react";
 import { useCatalog } from "../context/CatalogContext";
@@ -20,6 +20,19 @@ const nav: NavItem[] = [
     external: true,
   },
 ];
+
+function hashNavLinkStyle(active: boolean): CSSProperties {
+  return {
+    padding: "8px 14px",
+    borderRadius: 8,
+    fontSize: 14,
+    fontWeight: 500,
+    color: active ? "var(--text)" : "var(--text-muted)",
+    background: active ? "rgba(124, 58, 237, 0.15)" : "transparent",
+    textDecoration: "none",
+    whiteSpace: "nowrap",
+  };
+}
 
 export function Layout({ children }: { children: ReactNode }) {
   const loc = useLocation();
@@ -99,6 +112,20 @@ export function Layout({ children }: { children: ReactNode }) {
                 ⌘K
               </span>
             </button>
+            <Link
+              to={{ pathname: "/", hash: "get-started" }}
+              style={hashNavLinkStyle(onHome && loc.hash === "#get-started")}
+              title="Install the CLI and add templates (uvx or pip)"
+            >
+              Get started
+            </Link>
+            <Link
+              to={{ pathname: "/", hash: "ai-assistant" }}
+              style={hashNavLinkStyle(onHome && loc.hash === "#ai-assistant")}
+              title="Claude, Cursor, GitHub Copilot — dagster-component init adds repo hints"
+            >
+              AI assistants
+            </Link>
             <ThemeToggle />
             {nav.map((item) =>
               "to" in item ? (
@@ -110,9 +137,12 @@ export function Layout({ children }: { children: ReactNode }) {
                     borderRadius: 8,
                     fontSize: 14,
                     fontWeight: 500,
-                    color: onHome && item.to === "/" ? "var(--text)" : "var(--text-muted)",
+                    color:
+                      onHome && item.to === "/" && !loc.hash ? "var(--text)" : "var(--text-muted)",
                     background:
-                      onHome && item.to === "/" ? "rgba(124, 58, 237, 0.15)" : "transparent",
+                      onHome && item.to === "/" && !loc.hash
+                        ? "rgba(124, 58, 237, 0.15)"
+                        : "transparent",
                     textDecoration: "none",
                   }}
                 >

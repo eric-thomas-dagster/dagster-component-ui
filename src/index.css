@@ -345,3 +345,9 @@ button:focus-visible {
   border-top: 1px solid var(--border);
   margin: 1.5em 0;
 }
+
+/* In-page nav targets (sticky header offset) */
+#get-started,
+#ai-assistant {
+  scroll-margin-top: 76px;
+}

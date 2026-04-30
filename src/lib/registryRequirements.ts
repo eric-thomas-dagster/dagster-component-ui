@@ -61,6 +61,14 @@ export function cliOption1Uvx(componentId: string): string {
   ].join("\n");
 }
 
+/** Home / AI section: bootstrap assistant config files without installing the CLI into the project venv. */
+export function cliOption1UvxInit(): string {
+  return [
+    "uvx --from git+https://github.com/eric-thomas-dagster/dagster-community-components-cli.git \\",
+    "    dagster-component init",
+  ].join("\n");
+}
+
 export function cliOption2PipGit(componentId: string): string {
   return [`pip install ${COMMUNITY_CLI_PIP_GIT_SPEC}`, `dagster-component add ${componentId}`].join("\n");
 }

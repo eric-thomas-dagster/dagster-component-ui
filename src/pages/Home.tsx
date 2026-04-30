@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useLocation, Link } from "react-router-dom";
 import type { ManifestComponent } from "../types";
 import { useCatalog } from "../context/CatalogContext";
 import { ComponentCard } from "../components/ComponentCard";
@@ -14,9 +14,11 @@ import {
   pipInstallDagsterCore,
   CLI_HOME_PLACEHOLDER_COMPONENT_ID,
   cliOption1Uvx,
+  cliOption1UvxInit,
   cliOption2PipGit,
   COMMUNITY_CLI_REPO_WEB,
   COMMUNITY_CLI_VALUE_PROP,
+  CLI_AI_INIT_CALLOUT,
 } from "../lib/registryRequirements";
 import { PopularCategoryCard } from "../components/PopularCategoryCard";
 import { CopyButton } from "../components/CopyButton";
@@ -118,6 +120,7 @@ export function Home() {
   } = useCatalog();
   const [catalogRefreshBusy, setCatalogRefreshBusy] = useState(false);
   const [localQ, setLocalQ] = useState(qParam);
+  const loc = useLocation();
 
   const refreshCatalogNow = useCallback(async () => {
     setCatalogRefreshBusy(true);
@@ -131,6 +134,16 @@ export function Home() {
   useEffect(() => {
     setLocalQ(qParam);
   }, [qParam]);
+
+  useEffect(() => {
+    if (loadError || !loc.hash || components.length <= 0) return;
+    const id = loc.hash.slice(1);
+    if (id !== "get-started" && id !== "ai-assistant") return;
+    const t = window.setTimeout(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+    return () => clearTimeout(t);
+  }, [loadError, loc.hash, loc.pathname, components.length]);
 
   const categoryCounts = useMemo(() => {
     const m = new Map<string, number>();
@@ -608,8 +621,12 @@ export function Home() {
         </div>
       </section>
 
-      {!explorationActive && total > 0 && (
-        <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 32px" }}>
+      {total > 0 && (
+        <>
+          <section
+            id="get-started"
+            style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 32px" }}
+          >
           <h2 style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-dim)", margin: "0 0 12px" }}>
             Ready to get started?
           </h2>
@@ -699,7 +716,70 @@ export function Home() {
           <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "10px 0 0", lineHeight: 1.5 }}>
             {INSTALL_PYPI_NOTE} {INSTALL_VERSION_NOTE}
           </p>
-        </section>
+          </section>
+
+          <section
+            id="ai-assistant"
+            style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 40px" }}
+          >
+            <h2
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "var(--text-dim)",
+                margin: "0 0 12px",
+              }}
+            >
+              AI coding assistants
+            </h2>
+            <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", lineHeight: 1.6 }}>
+              Use the same catalog with Claude, Cursor, or GitHub Copilot: give the model this site, run{" "}
+              <span className="mono">dagster-component</span> for real package names, and prefer{" "}
+              <span className="mono">add</span> / <span className="mono">search</span> /{" "}
+              <span className="mono">schema</span> over inventing layout from scratch.
+            </p>
+            <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", lineHeight: 1.6 }}>
+              {CLI_AI_INIT_CALLOUT}
+            </p>
+            <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", margin: "0 0 6px", letterSpacing: "0.04em" }}>
+              Bootstrap with uvx (same as add)
+            </p>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 12,
+                padding: "14px 16px",
+                borderRadius: 12,
+                border: "1px solid var(--border)",
+                background: "var(--bg-card)",
+                width: "100%",
+                marginBottom: 8,
+              }}
+            >
+              <code
+                className="mono"
+                style={{
+                  fontSize: 12,
+                  color: "var(--text-muted)",
+                  flex: "1 1 280px",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                }}
+              >
+                {cliOption1UvxInit()}
+              </code>
+              <CopyButton text={cliOption1UvxInit()} label="Copy" />
+            </div>
+            <p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0, lineHeight: 1.5 }}>
+              After <span className="mono">init</span>, open a <Link to="/">component page</Link> and use{" "}
+              <span className="mono">dagster-component schema &lt;id&gt;</span> for structured YAML help.
+            </p>
+          </section>
+        </>
       )}
 
       {!explorationActive && total > 0 && (
