@@ -1,32 +1,88 @@
 /**
- * Baselines shown in the UI for “works with” / install hints.
- * The manifest does not carry Dagster or Python pins per component; treat these as
- * registry defaults (tune here to match your deployment policy).
- *
- * Users install **`dagster` from PyPI**, then copy or clone template folders into their project from this
- * catalog’s linked repos—individual templates are not shipped as pip packages.
+ * Baselines for “works with” / install hints.
+ * Primary path: dagster-community-components-cli (Git or uvx); it copies the template and installs pip deps.
+ * Users still need Dagster in the environment for their code location.
  */
+
 export const REGISTRY_DAGSTER_SPEC = ">=1.10.0";
 export const REGISTRY_PYTHON_SPEC = ">=3.10";
 
-/** Primary install line: Dagster runtime from PyPI (templates ship via repo copy, not pip). */
+export const COMMUNITY_CLI_REPO_WEB =
+  "https://github.com/eric-thomas-dagster/dagster-community-components-cli";
+export const COMMUNITY_CLI_PIP_GIT_SPEC =
+  "git+https://github.com/eric-thomas-dagster/dagster-community-components-cli.git";
+/** Not on PyPI yet; copy hints use this name once published. */
+export const COMMUNITY_CLI_PYPI_PACKAGE = "dagster-community-components-cli";
+
+export const UV_INSTALL_SHELL = "curl -LsSf https://astral.sh/uv/install.sh | sh";
+export const UV_INSTALL_DOCS = "https://docs.astral.sh/uv/getting-started/installation/";
+
+export const DAGSTER_PLUS_INSTALLER_TREE =
+  "https://github.com/eric-thomas-dagster/dagster-component-templates/tree/main/assets/infrastructure/community_component_installer";
+
+/** Placeholder on marketing/home copy—real pages substitute the manifest id. */
+export const CLI_HOME_PLACEHOLDER_COMPONENT_ID = "your_component_id";
+
+/** Dagster runtime remains a project prerequisite; not installed by the component CLI. */
 export function pipInstallDagsterCore(): string {
   return `python -m pip install -U "dagster${REGISTRY_DAGSTER_SPEC}"`;
 }
 
-/** Short explanatory line for hero / detail sections (no HTML). */
-export const INSTALL_PYPI_NOTE =
-  "`pip install` covers Dagster and any libs a component declares. To add one component, fetch or copy that folder from GitHub (commands on each page)—there is no pip package named after each template.";
-
-/**
- * Explain how “install one component” works: subdirectory copy/fetch — not pip install COMPONENT_ID,
- * no need to clone the whole templates repo first.
- */
-export const ADD_SINGLE_COMPONENT_SUMMARY =
-  "You add components one at a time: commands below fetch or copy only this template’s folder from GitHub into your project—then use pip for Dagster and any deps this component lists.";
-
 export const INSTALL_VERSION_NOTE =
   "Shown versions are catalog defaults—not pinned per-template. Align `dagster` with your deployment and Dagster docs for your release.";
+
+export const INSTALL_PYPI_NOTE =
+  "The CLI installs this component's declared pip dependencies; you still need Dagster in your environment for your code location—see above.";
+
+export const ADD_SINGLE_COMPONENT_SUMMARY =
+  "From your Dagster project root, run the dagster-component CLI once: it resolves the project, copies this template into the right folder, and installs its Python dependencies (no separate pip list step). Pick an install option below; uvx avoids pinning the CLI itself.";
+
+export const CLI_YAML_LSP_CALLOUT =
+  "The CLI prepends a `# yaml-language-server: $schema=<url>` comment to example.yaml—if you use the YAML language server (VS Code YAML extension, Cursor, Neovim yamlls) you get validation and hover against this template's schema without extra config.";
+
+export const CLI_AI_INIT_CALLOUT =
+  "Run dagster-component init in your repo to drop CLAUDE.md, .cursorrules, and .github/copilot-instructions.md so assistants favor dagster-component search / add instead of inventing components from scratch.";
+
+export function cliOption1Uvx(componentId: string): string {
+  return [
+    "uvx --from git+https://github.com/eric-thomas-dagster/dagster-community-components-cli.git \\",
+    `    dagster-component add ${componentId}`,
+  ].join("\n");
+}
+
+export function cliOption2PipGit(componentId: string): string {
+  return [`pip install ${COMMUNITY_CLI_PIP_GIT_SPEC}`, `dagster-component add ${componentId}`].join("\n");
+}
+
+/** PyPI path is forward-looking; first line is a comment so copy-paste is safe once published. */
+export function cliOption3Pypi(componentId: string): string {
+  return [
+    "# Coming soon — package not on PyPI yet",
+    `pip install ${COMMUNITY_CLI_PYPI_PACKAGE}`,
+    `dagster-component add ${componentId}`,
+  ].join("\n");
+}
+
+export type CliExtraCommand = { command: string; detail: string };
+
+/** Detail page: CLI commands with this component’s id where it helps. */
+export function cliExtraCommandsForComponent(componentId: string): CliExtraCommand[] {
+  return [
+    { command: "dagster-component search <keyword>", detail: "Find a component in the catalog." },
+    { command: `dagster-component info ${componentId}`, detail: "Show details and URLs for this component." },
+    { command: `dagster-component schema ${componentId}`, detail: "Print attribute schema—useful for AI assistants." },
+    {
+      command: `dagster-component add ${componentId}@v1.2.0`,
+      detail: "Install pinned to a tag, commit, or branch (example ref).",
+    },
+    { command: "dagster-component list", detail: "List components installed in the current project." },
+    {
+      command: `dagster-component update ${componentId}`,
+      detail: "Re-fetch the latest template files for this component.",
+    },
+    { command: `dagster-component remove ${componentId}`, detail: "Remove this component from the project." },
+  ];
+}
 
 export function pipInstallTemplatePackages(pip: string[]): string {
   if (!pip.length) return "";
@@ -40,7 +96,6 @@ export function buildInstallBundle(
   coreInstall: string;
   templateInstall: string | null;
   copyAll: string;
-  /** Full copy-paste: framework + why no per-component pip + copy path + deps */
   fullGuide: string;
 } {
   const coreInstall = pipInstallDagsterCore();
@@ -53,14 +108,13 @@ export function buildInstallBundle(
     : `${coreInstall}\n\n# No extra pip packages listed in the manifest for this template.`;
 
   const lines = [
-    "# --- Dagster (always from PyPI) ---",
+    "# --- Advanced: manual copy (no dagster-component CLI) ---",
+    "# Install Dagster + template deps, then copy the folder from GitHub into defs/components/ (or use tiged below).",
+    "",
+    "# --- Dagster ---",
     coreInstall,
     "",
-    "# --- There is NO pip package for this single component ---",
-    "# Templates live in the GitHub repo: copy the folder into your project (e.g. defs/components/).",
-    "# Then install the template's Python deps (manifest list below, or requirements.txt in that folder).",
-    "",
-    "# --- Copy this folder from a clone of dagster-component-templates ---",
+    "# --- Copy this folder from a templates repo checkout ---",
     `# cp -r dagster-component-templates/${relPath} ./defs/components/`,
   ];
   if (opts?.hasRequirementsFile) {

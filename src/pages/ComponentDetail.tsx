@@ -17,9 +17,20 @@ import { githubTreeUrl } from "../lib/installSnippet";
 import {
   ADD_SINGLE_COMPONENT_SUMMARY,
   buildInstallBundle,
+  CLI_AI_INIT_CALLOUT,
+  CLI_YAML_LSP_CALLOUT,
+  cliExtraCommandsForComponent,
+  cliOption1Uvx,
+  cliOption2PipGit,
+  cliOption3Pypi,
+  COMMUNITY_CLI_REPO_WEB,
+  DAGSTER_PLUS_INSTALLER_TREE,
+  INSTALL_PYPI_NOTE,
   INSTALL_VERSION_NOTE,
   REGISTRY_DAGSTER_SPEC,
   REGISTRY_PYTHON_SPEC,
+  UV_INSTALL_DOCS,
+  UV_INSTALL_SHELL,
 } from "../lib/registryRequirements";
 import {
   buildPythonAddCommand,
@@ -130,6 +141,11 @@ export function ComponentDetail() {
   const ghParsed = useMemo(() => parseGithubRepo(repoUrl), [repoUrl]);
 
   const cid = useMemo(() => (manifest ? componentId(manifest) : ""), [manifest]);
+
+  const cliUvx = useMemo(() => cliOption1Uvx(cid), [cid]);
+  const cliPipGit = useMemo(() => cliOption2PipGit(cid), [cid]);
+  const cliPypi = useMemo(() => cliOption3Pypi(cid), [cid]);
+  const cliExtras = useMemo(() => (cid ? cliExtraCommandsForComponent(cid) : []), [cid]);
 
   const easyAdd = useMemo(() => {
     if (!manifest || !ghParsed) return null;
@@ -414,6 +430,13 @@ export function ComponentDetail() {
               <p style={{ fontSize: 15, color: "var(--text-muted)", marginTop: 0, lineHeight: 1.6 }}>
                 {ADD_SINGLE_COMPONENT_SUMMARY}
               </p>
+              <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "0 0 16px", lineHeight: 1.55 }}>
+                Source:{" "}
+                <a href={COMMUNITY_CLI_REPO_WEB} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
+                  dagster-community-components-cli
+                </a>{" "}
+                on GitHub. Run installs from your Dagster code-location root (the CLI detects the project).
+              </p>
               <div
                 style={{
                   display: "flex",
@@ -428,36 +451,88 @@ export function ComponentDetail() {
                 }}
               >
                 <span style={{ fontSize: 13, color: "var(--text-dim)", flex: "0 0 auto" }}>
-                  1 · Install Dagster
+                  Prerequisite · Dagster
                 </span>
                 <code className="mono" style={{ fontSize: 12, flex: "1 1 200px", color: "var(--text-muted)" }}>
                   {installBundle.coreInstall}
                 </code>
                 <CopyButton text={installBundle.coreInstall} label="Copy" />
               </div>
-              <p style={{ margin: "10px 0 0", fontSize: 13, color: "var(--text-dim)", lineHeight: 1.55 }}>
-                {INSTALL_VERSION_NOTE}
+              <p style={{ margin: "0 0 8px", fontSize: 13, color: "var(--text-dim)", lineHeight: 1.55 }}>
+                {INSTALL_PYPI_NOTE} {INSTALL_VERSION_NOTE}
               </p>
-              {easyAdd && (
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                    gap: 10,
-                    marginBottom: 14,
-                    marginTop: 14,
-                  }}
-                >
-                  <span style={{ fontSize: 13, color: "var(--text-muted)", flex: "1 1 260px", lineHeight: 1.45 }}>
-                    2 · Add only this folder — subdirectory fetch (<code className="mono" style={{ fontSize: 12 }}>npx tiged</code>{" "}
-                    or Python)—not a full-repo clone:
-                  </span>
-                  <CopyButton text={easyAdd.tiged} label="Using Node (npx)" />
-                  <CopyButton text={easyAdd.curlPy} label="Using Python" />
-                  <CopyButton text={easyAdd.bundle} label="Copy both commands" />
-                </div>
-              )}
+
+              <h3 style={{ ...installOptionHeadingStyle, marginTop: 14 }}>Option 1 — Zero-install via uvx (recommended)</h3>
+              <InstallCodeBlock text={cliUvx} copyLabel="Copy" />
+              <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "12px 0 0", lineHeight: 1.55 }}>
+                Don&apos;t have uv yet?{" "}
+                <code className="mono" style={{ fontSize: 12 }}>{UV_INSTALL_SHELL}</code> (macOS / Linux) or see{" "}
+                <a href={UV_INSTALL_DOCS} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
+                  uv installation
+                </a>
+                .
+              </p>
+
+              <h3 style={installOptionHeadingStyle}>Option 2 — pip install from GitHub</h3>
+              <InstallCodeBlock text={cliPipGit} copyLabel="Copy" />
+
+              <h3 style={installOptionHeadingStyle}>
+                Option 3 — pip install from PyPI{" "}
+                <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-dim)" }}>(coming soon)</span>
+              </h3>
+              <InstallCodeBlock text={cliPypi} copyLabel="Copy" />
+
+              <div style={installCalloutStyle}>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 650, color: "var(--text)" }}>
+                  YAML + schema in your editor
+                </p>
+                <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>
+                  {CLI_YAML_LSP_CALLOUT}
+                </p>
+              </div>
+              <div style={{ ...installCalloutStyle, marginTop: 12 }}>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 650, color: "var(--text)" }}>
+                  AI coding assistants
+                </p>
+                <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>
+                  {CLI_AI_INIT_CALLOUT}
+                </p>
+              </div>
+              <div style={{ ...installCalloutStyle, marginTop: 12 }}>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 650, color: "var(--text)" }}>
+                  Dagster+ (install from the UI)
+                </p>
+                <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>
+                  <strong style={{ color: "var(--text)" }}>CommunityComponentInstallerComponent</strong> can download
+                  registry components at refresh time from inside Dagster+, driven by YAML—pin versions with{" "}
+                  <code className="mono" style={{ fontSize: 12 }}>id@ref</code> syntax. Template folder:{" "}
+                  <a
+                    href={DAGSTER_PLUS_INSTALLER_TREE}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: "var(--cyan)" }}
+                  >
+                    community_component_installer
+                  </a>
+                  .
+                </p>
+              </div>
+
+              <h3 style={installOptionHeadingStyle}>What else can the CLI do?</h3>
+              <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 12 }}>
+                {cliExtras.map((row) => (
+                  <li key={row.command}>
+                    <code
+                      className="mono"
+                      style={{ fontSize: 13, display: "block", color: "var(--cyan)", marginBottom: 4, wordBreak: "break-word" }}
+                    >
+                      {row.command}
+                    </code>
+                    <span style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.45 }}>{row.detail}</span>
+                  </li>
+                ))}
+              </ul>
+
               <button
                 type="button"
                 onClick={() => setSetupExpanded((e) => !e)}
@@ -470,10 +545,11 @@ export function ComponentDetail() {
                   padding: "8px 14px",
                   borderRadius: 8,
                   cursor: "pointer",
+                  marginTop: 22,
                   marginBottom: setupExpanded ? 14 : 0,
                 }}
               >
-                {setupExpanded ? "▲ Hide copy-paste details" : "▼ Full commands, deps & pip list"}
+                {setupExpanded ? "▲ Hide advanced (manual copy)" : "▼ Advanced: manual folder copy & manifest deps"}
               </button>
               {setupExpanded && (
                 <div
@@ -485,28 +561,31 @@ export function ComponentDetail() {
                     gap: 18,
                   }}
                 >
+                  <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0, lineHeight: 1.55 }}>
+                    If you are not using the CLI, copy the template folder into your project (e.g.{" "}
+                    <code className="mono" style={{ fontSize: 12 }}>defs/components/</code>
+                    ), then install Dagster and any packages below yourself. With the CLI, dependency installs are automatic.
+                  </p>
                   {easyAdd && (
                     <>
                       <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)", margin: 0 }}>
-                        Fetch only this folder (full commands)
+                        Fetch only this folder (tiged or hosted helper script)
                       </p>
                       <InstallCodeBlock text={easyAdd.tiged} copyLabel="Copy" />
                       <InstallCodeBlock text={easyAdd.curlPy} copyLabel="Copy" />
                     </>
                   )}
                   <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)", margin: 0 }}>
-                    Template Python packages (if any)
+                    Template Python packages (manifest)
                   </p>
                   {installBundle.templateInstall ? (
                     <InstallCodeBlock text={installBundle.templateInstall} copyLabel="Copy" />
                   ) : (
-                    <p style={{ fontSize: 13, color: "var(--text-dim)", margin: 0 }}>
-                      None listed for this template.
-                    </p>
+                    <p style={{ fontSize: 13, color: "var(--text-dim)", margin: 0 }}>None listed for this template.</p>
                   )}
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
                     <CopyButton text={installBundle.copyAll} label="Copy pip lines" />
-                    <CopyButton text={installBundle.fullGuide} label="Copy pip + folder script" />
+                    <CopyButton text={installBundle.fullGuide} label="Copy manual guide" />
                   </div>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)", margin: "0 0 10px" }}>
@@ -587,9 +666,10 @@ export function ComponentDetail() {
             <section style={{ marginBottom: 26 }}>
               <h2 style={sectionTitleFriendly}>How to use it</h2>
               <p style={{ fontSize: 15, color: "var(--text-muted)", marginTop: 0, lineHeight: 1.65 }}>
-                After the folder is in your repo, start from <strong>example.yaml</strong> (or your own YAML) and wire
-                any resources or secrets this integration needs. Register the component with your Dagster code location
-                the same way you do for other Dagster Components—see the docs if you’re new to the pattern.
+                After <strong>dagster-component add</strong> (or a manual copy), start from{" "}
+                <strong>example.yaml</strong> (or your own YAML) and wire any resources or secrets this integration
+                needs. Register the component with your Dagster code location the same way you do for other Dagster
+                Components—see the docs if you’re new to the pattern.
               </p>
               <ul
                 style={{
@@ -1219,6 +1299,21 @@ const sectionTitleFriendly: CSSProperties = {
   letterSpacing: "-0.02em",
   color: "var(--text)",
   margin: "0 0 10px",
+};
+
+const installOptionHeadingStyle: CSSProperties = {
+  fontSize: 15,
+  fontWeight: 650,
+  letterSpacing: "-0.02em",
+  color: "var(--text)",
+  margin: "22px 0 10px",
+};
+
+const installCalloutStyle: CSSProperties = {
+  padding: "14px 16px",
+  borderRadius: 10,
+  border: "1px solid var(--border)",
+  background: "var(--bg-elevated)",
 };
 
 const sectionTitleSmall: CSSProperties = {
