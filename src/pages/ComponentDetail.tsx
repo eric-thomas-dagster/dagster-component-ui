@@ -24,7 +24,9 @@ import {
   cliOption2PipGit,
   cliOption3Pypi,
   COMMUNITY_CLI_REPO_WEB,
-  DAGSTER_PLUS_INSTALLER_TREE,
+  COMMUNITY_CLI_VALUE_PROP,
+  COMMUNITY_INSTALLER_CALLOUT,
+  COMMUNITY_INSTALLER_TEMPLATE_TREE,
   INSTALL_PYPI_NOTE,
   INSTALL_VERSION_NOTE,
   REGISTRY_DAGSTER_SPEC,
@@ -65,6 +67,7 @@ export function ComponentDetail() {
   const [loading, setLoading] = useState(true);
   const [depsExpanded, setDepsExpanded] = useState(false);
   const [setupExpanded, setSetupExpanded] = useState(false);
+  const [cliMoreInstallExpanded, setCliMoreInstallExpanded] = useState(false);
   const [docViewer, setDocViewer] = useState<{
     title: string;
     url: string;
@@ -267,6 +270,45 @@ export function ComponentDetail() {
             <span style={{ color: "var(--text)", fontWeight: 500 }}>{displayTitle}</span>
           </nav>
 
+          <div
+            style={{
+              fontSize: 12,
+              color: "var(--text-muted)",
+              marginBottom: 18,
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: "4px 10px",
+            }}
+            aria-label="Tips on this page"
+          >
+            <span
+              style={{
+                color: "var(--text-dim)",
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+              }}
+            >
+              Tips
+            </span>
+            <a href="#ecosystem-yaml" style={{ color: "var(--cyan)", fontWeight: 500 }}>
+              YAML + schema
+            </a>
+            <span style={{ color: "var(--text-dim)" }} aria-hidden>
+              ·
+            </span>
+            <a href="#ecosystem-ai" style={{ color: "var(--cyan)", fontWeight: 500 }}>
+              AI assistants
+            </a>
+            <span style={{ color: "var(--text-dim)" }} aria-hidden>
+              ·
+            </span>
+            <a href="#ecosystem-installer" style={{ color: "var(--cyan)", fontWeight: 500 }}>
+              Community installer
+            </a>
+          </div>
+
           <header style={{ marginBottom: 28 }}>
             <div
               style={{
@@ -430,12 +472,15 @@ export function ComponentDetail() {
               <p style={{ fontSize: 15, color: "var(--text-muted)", marginTop: 0, lineHeight: 1.6 }}>
                 {ADD_SINGLE_COMPONENT_SUMMARY}
               </p>
-              <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "0 0 16px", lineHeight: 1.55 }}>
+              <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "0 0 8px", lineHeight: 1.55 }}>
                 Source:{" "}
                 <a href={COMMUNITY_CLI_REPO_WEB} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
                   dagster-community-components-cli
                 </a>{" "}
                 on GitHub. Run installs from your Dagster code-location root (the CLI detects the project).
+              </p>
+              <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 16px", lineHeight: 1.55 }}>
+                {COMMUNITY_CLI_VALUE_PROP}
               </p>
               <div
                 style={{
@@ -462,7 +507,7 @@ export function ComponentDetail() {
                 {INSTALL_PYPI_NOTE} {INSTALL_VERSION_NOTE}
               </p>
 
-              <h3 style={{ ...installOptionHeadingStyle, marginTop: 14 }}>Option 1 — Zero-install via uvx (recommended)</h3>
+              <h3 style={{ ...installOptionHeadingStyle, marginTop: 14 }}>Recommended — uvx (zero CLI install)</h3>
               <InstallCodeBlock text={cliUvx} copyLabel="Copy" />
               <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "12px 0 0", lineHeight: 1.55 }}>
                 Don&apos;t have uv yet?{" "}
@@ -473,52 +518,43 @@ export function ComponentDetail() {
                 .
               </p>
 
-              <h3 style={installOptionHeadingStyle}>Option 2 — pip install from GitHub</h3>
-              <InstallCodeBlock text={cliPipGit} copyLabel="Copy" />
+              <button
+                type="button"
+                onClick={() => setCliMoreInstallExpanded((e) => !e)}
+                style={{
+                  background: "transparent",
+                  border: "1px solid var(--border)",
+                  color: "var(--cyan)",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  padding: "8px 14px",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  marginTop: 16,
+                  fontFamily: "inherit",
+                }}
+              >
+                {cliMoreInstallExpanded
+                  ? "▲ Hide pip install options"
+                  : "▼ Other ways to install (pip from GitHub, PyPI soon)"}
+              </button>
+              {cliMoreInstallExpanded && (
+                <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 2 }}>
+                  <h3 style={{ ...installOptionHeadingStyle, marginTop: 8 }}>pip install from GitHub</h3>
+                  <InstallCodeBlock text={cliPipGit} copyLabel="Copy" />
+                  <h3 style={installOptionHeadingStyle}>
+                    pip install from PyPI{" "}
+                    <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-dim)" }}>(coming soon)</span>
+                  </h3>
+                  <InstallCodeBlock text={cliPypi} copyLabel="Copy" />
+                </div>
+              )}
 
-              <h3 style={installOptionHeadingStyle}>
-                Option 3 — pip install from PyPI{" "}
-                <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-dim)" }}>(coming soon)</span>
-              </h3>
-              <InstallCodeBlock text={cliPypi} copyLabel="Copy" />
-
-              <div style={installCalloutStyle}>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 650, color: "var(--text)" }}>
-                  YAML + schema in your editor
-                </p>
-                <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>
-                  {CLI_YAML_LSP_CALLOUT}
-                </p>
-              </div>
-              <div style={{ ...installCalloutStyle, marginTop: 12 }}>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 650, color: "var(--text)" }}>
-                  AI coding assistants
-                </p>
-                <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>
-                  {CLI_AI_INIT_CALLOUT}
-                </p>
-              </div>
-              <div style={{ ...installCalloutStyle, marginTop: 12 }}>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 650, color: "var(--text)" }}>
-                  Dagster+ (install from the UI)
-                </p>
-                <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>
-                  <strong style={{ color: "var(--text)" }}>CommunityComponentInstallerComponent</strong> can download
-                  registry components at refresh time from inside Dagster+, driven by YAML—pin versions with{" "}
-                  <code className="mono" style={{ fontSize: 12 }}>id@ref</code> syntax. Template folder:{" "}
-                  <a
-                    href={DAGSTER_PLUS_INSTALLER_TREE}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ color: "var(--cyan)" }}
-                  >
-                    community_component_installer
-                  </a>
-                  .
-                </p>
-              </div>
-
-              <h3 style={installOptionHeadingStyle}>What else can the CLI do?</h3>
+              <h3 style={{ ...installOptionHeadingStyle, marginTop: 22 }}>Built-in commands (same dagster-component)</h3>
+              <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "0 0 12px", lineHeight: 1.55 }}>
+                These run as subcommands of the program you install with dagster-community-components-cli or via
+                uvx—one binary, not a one-off add script.
+              </p>
               <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 12 }}>
                 {cliExtras.map((row) => (
                   <li key={row.command}>
@@ -661,6 +697,55 @@ export function ComponentDetail() {
                   </div>
                 </div>
               )}
+            </section>
+
+            <section id="ecosystem-tips" style={{ marginBottom: 26 }}>
+              <h2 style={sectionTitleFriendly}>Tips & ecosystem tools</h2>
+              <p
+                style={{
+                  fontSize: 14,
+                  color: "var(--text-muted)",
+                  marginTop: 0,
+                  marginBottom: 14,
+                  lineHeight: 1.55,
+                }}
+              >
+                Optional editor and workflow extras—same no matter how you installed this template. Use the{" "}
+                <span style={{ color: "var(--text-dim)", fontWeight: 600 }}>Tips</span> links above the title to jump here.
+              </p>
+              <div id="ecosystem-yaml" style={{ ...installCalloutStyle, scrollMarginTop: 24 }}>
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 650, color: "var(--text)" }}>
+                  YAML + schema in your editor
+                </h3>
+                <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>
+                  {CLI_YAML_LSP_CALLOUT}
+                </p>
+              </div>
+              <div id="ecosystem-ai" style={{ ...installCalloutStyle, marginTop: 12, scrollMarginTop: 24 }}>
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 650, color: "var(--text)" }}>
+                  AI coding assistants
+                </h3>
+                <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>
+                  {CLI_AI_INIT_CALLOUT}
+                </p>
+              </div>
+              <div id="ecosystem-installer" style={{ ...installCalloutStyle, marginTop: 12, scrollMarginTop: 24 }}>
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 650, color: "var(--text)" }}>
+                  Community component installer (YAML-driven)
+                </h3>
+                <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>
+                  {COMMUNITY_INSTALLER_CALLOUT}{" "}
+                  <a
+                    href={COMMUNITY_INSTALLER_TEMPLATE_TREE}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: "var(--cyan)" }}
+                  >
+                    community_component_installer on GitHub
+                  </a>
+                  .
+                </p>
+              </div>
             </section>
 
             <section style={{ marginBottom: 26 }}>

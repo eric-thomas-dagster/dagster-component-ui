@@ -1,8 +1,12 @@
 /**
  * Baselines for “works with” / install hints.
- * Primary path: dagster-community-components-cli (Git or uvx); it copies the template and installs pip deps.
+ * Primary tool: **dagster-community-components-cli** on GitHub / PyPI (soon)—it installs the **dagster-component**
+ * executable (add, search, info, schema, list, update, remove, init, …) and handles template copy + pip deps for adds.
  * Users still need Dagster in the environment for their code location.
  */
+
+export const COMMUNITY_CLI_VALUE_PROP =
+  "The dagster-community-components-cli package installs the dagster-component program on your PATH. add is one subcommand—the same binary includes search, info, schema, list, update, remove, init, and other helpers built for this registry (see your component page for concrete examples).";
 
 export const REGISTRY_DAGSTER_SPEC = ">=1.10.0";
 export const REGISTRY_PYTHON_SPEC = ">=3.10";
@@ -17,8 +21,15 @@ export const COMMUNITY_CLI_PYPI_PACKAGE = "dagster-community-components-cli";
 export const UV_INSTALL_SHELL = "curl -LsSf https://astral.sh/uv/install.sh | sh";
 export const UV_INSTALL_DOCS = "https://docs.astral.sh/uv/getting-started/installation/";
 
-export const DAGSTER_PLUS_INSTALLER_TREE =
+export const COMMUNITY_INSTALLER_TEMPLATE_TREE =
   "https://github.com/eric-thomas-dagster/dagster-component-templates/tree/main/assets/infrastructure/community_component_installer";
+
+/** Copy for the CommunityComponentInstallerComponent tip (local / YAML-driven; not a Dagster+–only UI). */
+export const COMMUNITY_INSTALLER_CALLOUT =
+  "CommunityComponentInstallerComponent is a normal catalog template: add it with dagster-component add or copy the folder, then configure YAML to pull other registry components at materialization or refresh. Pin versions with id@ref. There is no Dagster+–exclusive installer UI yet—you run this locally like any other component.";
+
+/** @deprecated use COMMUNITY_INSTALLER_TEMPLATE_TREE */
+export const DAGSTER_PLUS_INSTALLER_TREE = COMMUNITY_INSTALLER_TEMPLATE_TREE;
 
 /** Placeholder on marketing/home copy—real pages substitute the manifest id. */
 export const CLI_HOME_PLACEHOLDER_COMPONENT_ID = "your_component_id";
@@ -35,7 +46,7 @@ export const INSTALL_PYPI_NOTE =
   "The CLI installs this component's declared pip dependencies; you still need Dagster in your environment for your code location—see above.";
 
 export const ADD_SINGLE_COMPONENT_SUMMARY =
-  "From your Dagster project root, run the dagster-component CLI once: it resolves the project, copies this template into the right folder, and installs its Python dependencies (no separate pip list step). Pick an install option below; uvx avoids pinning the CLI itself.";
+  "Use dagster-component from dagster-community-components-cli at your project root: it finds your Dagster project, copies this template, and installs declared pip dependencies. The default line below uses uvx so you can run the full CLI without pip-installing the package first—expand for pip-from-GitHub or (soon) PyPI.";
 
 export const CLI_YAML_LSP_CALLOUT =
   "The CLI prepends a `# yaml-language-server: $schema=<url>` comment to example.yaml—if you use the YAML language server (VS Code YAML extension, Cursor, Neovim yamlls) you get validation and hover against this template's schema without extra config.";

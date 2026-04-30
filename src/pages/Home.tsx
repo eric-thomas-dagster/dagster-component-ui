@@ -8,7 +8,16 @@ import { matchesQuery, sortByRelevance } from "../lib/search";
 import { categoryLabel, formatDate } from "../lib/format";
 import { countDistinctBrandIntegrations, newestComponents } from "../lib/catalogStats";
 import { countVerificationBreakdown } from "../lib/verification";
-import { INSTALL_PYPI_NOTE, INSTALL_VERSION_NOTE, pipInstallDagsterCore, CLI_HOME_PLACEHOLDER_COMPONENT_ID, cliOption1Uvx, cliOption2PipGit, COMMUNITY_CLI_REPO_WEB } from "../lib/registryRequirements";
+import {
+  INSTALL_PYPI_NOTE,
+  INSTALL_VERSION_NOTE,
+  pipInstallDagsterCore,
+  CLI_HOME_PLACEHOLDER_COMPONENT_ID,
+  cliOption1Uvx,
+  cliOption2PipGit,
+  COMMUNITY_CLI_REPO_WEB,
+  COMMUNITY_CLI_VALUE_PROP,
+} from "../lib/registryRequirements";
 import { PopularCategoryCard } from "../components/PopularCategoryCard";
 import { CopyButton } from "../components/CopyButton";
 
@@ -613,6 +622,9 @@ export function Home() {
             declared deps). Still need <span className="mono">dagster</span> for your code location—see below. Open a
             component page to substitute its id for{" "}
             <code className="mono" style={{ fontSize: 13 }}>{CLI_HOME_PLACEHOLDER_COMPONENT_ID}</code>.
+          </p>
+          <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", maxWidth: 760, lineHeight: 1.6 }}>
+            {COMMUNITY_CLI_VALUE_PROP}
           </p>
           <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", margin: "0 0 6px", letterSpacing: "0.04em" }}>
             Recommended — uvx (no CLI install)
