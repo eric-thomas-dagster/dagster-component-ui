@@ -13,12 +13,14 @@ import {
   INSTALL_VERSION_NOTE,
   pipInstallDagsterCore,
   CLI_HOME_PLACEHOLDER_COMPONENT_ID,
-  cliOption1Uvx,
-  cliOption1UvxInit,
-  cliOption2PipGit,
-  COMMUNITY_CLI_REPO_WEB,
+  canonicalInstallSnippet,
+  CLI_QUICK_REFERENCE_LINES,
+  COMMUNITY_CLI_README_WEB,
   COMMUNITY_CLI_VALUE_PROP,
   CLI_AI_INIT_CALLOUT,
+  cliOption1UvxInit,
+  UV_INSTALL_DOCS,
+  UV_INSTALL_SHELL,
 } from "../lib/registryRequirements";
 import { PopularCategoryCard } from "../components/PopularCategoryCard";
 import { CopyButton } from "../components/CopyButton";
@@ -112,6 +114,7 @@ export function Home() {
 
   const {
     components,
+    catalogTotal,
     manifestMeta,
     manifestFetchedAt,
     loadError,
@@ -305,7 +308,7 @@ export function Home() {
           packages per template).
         </p>
         <p style={{ fontSize: 15, color: "var(--text-dim)", maxWidth: 720, margin: "0 0 20px" }}>
-          <strong style={{ color: "var(--text)" }}>{total || "—"}</strong> templates ·{" "}
+          <strong style={{ color: "var(--text)" }}>{catalogTotal || "—"}</strong> templates ·{" "}
           <strong style={{ color: "var(--text)" }}>{catCount || "—"}</strong> categories ·{" "}
           <strong style={{ color: "var(--text)" }}>{integrationBrands || "—"}</strong> branded integrations (
           <span className="mono">si:*</span> icons)
@@ -408,7 +411,7 @@ export function Home() {
             gap: 14,
           }}
         >
-        <StatBox value={total ? String(total) : "—"} label="Templates" hint="Total components" />
+        <StatBox value={catalogTotal ? String(catalogTotal) : "—"} label="Templates" hint="Total components" />
         <StatBox value={catCount ? String(catCount) : "—"} label="Categories" hint="Functional groups" />
         <StatBox
           value={integrationBrands ? String(integrationBrands) : "—"}
@@ -631,26 +634,21 @@ export function Home() {
             Ready to get started?
           </h2>
           <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", lineHeight: 1.6 }}>
-            Install{" "}
-            <a href={COMMUNITY_CLI_REPO_WEB} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
-              dagster-community-components-cli
-            </a>
-            , then add any catalog template in one step from your project root (it downloads files and pip-installs
-            declared deps). Still need <span className="mono">dagster</span> for your code location—see below. Open a
-            component page to substitute its id for{" "}
+            Install <span className="mono">dagster-community-components-cli</span> from PyPI (or run via{" "}
+            <span className="mono">uvx</span> without installing). From your project root,{" "}
+            <span className="mono">dagster-component add</span> copies a template and installs its declared pip
+            dependencies. You still need <span className="mono">dagster</span> for your code location—see below. On each
+            component page, the command uses that template&apos;s id instead of{" "}
             <code className="mono" style={{ fontSize: 13 }}>{CLI_HOME_PLACEHOLDER_COMPONENT_ID}</code>.
           </p>
-          <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", lineHeight: 1.6 }}>
-            {COMMUNITY_CLI_VALUE_PROP}
+          <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 14px", lineHeight: 1.6 }}>
+            {COMMUNITY_CLI_VALUE_PROP}{" "}
+            <a href={COMMUNITY_CLI_README_WEB} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
+              CLI README on GitHub
+            </a>{" "}
+            has the full command reference—this page stays short.
           </p>
-          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", margin: "0 0 6px", letterSpacing: "0.04em" }}>
-            Recommended — uvx (no permanent CLI install)
-          </p>
-          <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "0 0 10px", lineHeight: 1.5 }}>
-            uvx runs the real <span className="mono">dagster-component</span> in an isolated one-off environment (uv may
-            cache the download)—same commands as a pip install, but nothing is added to your project venv. Use pip below
-            when you want the CLI installed in your environment.
-          </p>
+
           <div
             style={{
               display: "flex",
@@ -662,36 +660,66 @@ export function Home() {
               border: "1px solid var(--border)",
               background: "var(--bg-card)",
               width: "100%",
-              marginBottom: 14,
+              marginBottom: 18,
             }}
           >
-            <code className="mono" style={{ fontSize: 12, color: "var(--text-muted)", flex: "1 1 280px", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-              {cliOption1Uvx(CLI_HOME_PLACEHOLDER_COMPONENT_ID)}
+            <code
+              className="mono"
+              style={{
+                fontSize: 12,
+                color: "var(--text-muted)",
+                flex: "1 1 280px",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+              }}
+            >
+              {canonicalInstallSnippet(CLI_HOME_PLACEHOLDER_COMPONENT_ID)}
             </code>
-            <CopyButton text={cliOption1Uvx(CLI_HOME_PLACEHOLDER_COMPONENT_ID)} label="Copy" />
+            <CopyButton text={canonicalInstallSnippet(CLI_HOME_PLACEHOLDER_COMPONENT_ID)} label="Copy" />
           </div>
-          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", margin: "0 0 6px", letterSpacing: "0.04em" }}>
-            Or — pip from GitHub
-          </p>
+
           <div
             style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              gap: 12,
               padding: "14px 16px",
               borderRadius: 12,
               border: "1px solid var(--border)",
-              background: "var(--bg-card)",
-              width: "100%",
-              marginBottom: 14,
+              background: "var(--bg-elevated)",
+              marginBottom: 18,
             }}
           >
-            <code className="mono" style={{ fontSize: 12, color: "var(--text-muted)", flex: "1 1 280px", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-              {cliOption2PipGit(CLI_HOME_PLACEHOLDER_COMPONENT_ID)}
-            </code>
-            <CopyButton text={cliOption2PipGit(CLI_HOME_PLACEHOLDER_COMPONENT_ID)} label="Copy" />
+            <h3
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                color: "var(--text-dim)",
+                margin: "0 0 12px",
+              }}
+            >
+              Quick reference
+            </h3>
+            <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+              {CLI_QUICK_REFERENCE_LINES.map((row) => (
+                <li key={row.command}>
+                  <code
+                    className="mono"
+                    style={{
+                      fontSize: 12,
+                      display: "block",
+                      color: "var(--cyan)",
+                      marginBottom: 4,
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {row.command}
+                  </code>
+                  <span style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.45 }}>{row.note}</span>
+                </li>
+              ))}
+            </ul>
           </div>
+
           <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", margin: "0 0 6px", letterSpacing: "0.04em" }}>
             Prerequisite — Dagster runtime
           </p>
@@ -714,6 +742,14 @@ export function Home() {
             <CopyButton text={pipInstallDagsterCore()} label="Copy" />
           </div>
           <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "10px 0 0", lineHeight: 1.5 }}>
+            Don&apos;t have <span className="mono">uv</span> for uvx?{" "}
+            <code className="mono" style={{ fontSize: 11 }}>{UV_INSTALL_SHELL}</code> (macOS / Linux) or{" "}
+            <a href={UV_INSTALL_DOCS} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
+              uv installation
+            </a>
+            .
+          </p>
+          <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "8px 0 0", lineHeight: 1.5 }}>
             {INSTALL_PYPI_NOTE} {INSTALL_VERSION_NOTE}
           </p>
           </section>
@@ -815,7 +851,7 @@ export function Home() {
                 fontSize: 15,
               }}
             >
-              Browse all {total} components
+              Browse all {catalogTotal} components
             </button>
             <button
               type="button"

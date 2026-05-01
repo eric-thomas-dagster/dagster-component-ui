@@ -49,6 +49,8 @@ export interface Manifest {
   version: string;
   repository: string;
   last_updated: string;
+  /** Optional authoritative count from manifest generator; fallback is `components.length`. */
+  total?: number;
   components: ManifestComponent[];
 }
 

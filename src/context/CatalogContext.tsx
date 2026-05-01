@@ -14,6 +14,8 @@ import { OPEN_SEARCH_PALETTE_EVENT } from "../lib/openSearchPalette";
 
 type CatalogValue = {
   components: ManifestComponent[];
+  /** `manifest.total` when present, else `components.length`. */
+  catalogTotal: number;
   manifestMeta: { last_updated: string; repo: string } | null;
   /** When this tab last successfully loaded manifest.json (browser time). */
   manifestFetchedAt: string | null;
@@ -28,6 +30,7 @@ const CatalogCtx = createContext<CatalogValue | null>(null);
 export function CatalogProvider({ children }: { children: ReactNode }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [components, setComponents] = useState<ManifestComponent[]>([]);
+  const [catalogTotal, setCatalogTotal] = useState(0);
   const [manifestMeta, setManifestMeta] = useState<{
     last_updated: string;
     repo: string;
@@ -40,6 +43,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
       setLoadError(null);
       const m = await loadManifest();
       setComponents(m.components);
+      setCatalogTotal(typeof m.total === "number" ? m.total : m.components.length);
       setManifestMeta({ last_updated: m.last_updated, repo: m.repository });
       setManifestFetchedAt(new Date().toISOString());
     } catch (e) {
@@ -54,6 +58,7 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
         const m = await loadManifest();
         if (cancelled) return;
         setComponents(m.components);
+        setCatalogTotal(typeof m.total === "number" ? m.total : m.components.length);
         setManifestMeta({ last_updated: m.last_updated, repo: m.repository });
         setManifestFetchedAt(new Date().toISOString());
       } catch (e) {
@@ -87,13 +92,14 @@ export function CatalogProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       components,
+      catalogTotal,
       manifestMeta,
       manifestFetchedAt,
       loadError,
       openSearchPalette,
       reloadCatalog,
     }),
-    [components, manifestMeta, manifestFetchedAt, loadError, openSearchPalette, reloadCatalog]
+    [components, catalogTotal, manifestMeta, manifestFetchedAt, loadError, openSearchPalette, reloadCatalog]
   );
 
   return (

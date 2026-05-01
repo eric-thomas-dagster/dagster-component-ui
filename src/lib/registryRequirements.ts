@@ -1,21 +1,21 @@
 /**
  * Baselines for “works with” / install hints.
- * Primary tool: **dagster-community-components-cli** on GitHub / PyPI (soon)—it installs the **dagster-component**
- * executable (add, search, info, schema, list, update, remove, init, …) and handles template copy + pip deps for adds.
+ * **dagster-community-components-cli** is on PyPI; it installs **dagster-component** (search, info, add, schema, …).
  * Users still need Dagster in the environment for their code location.
  */
 
 export const COMMUNITY_CLI_VALUE_PROP =
-  "The dagster-community-components-cli package installs the dagster-component program on your PATH. add is one subcommand—the same binary includes search, info, schema, list, update, remove, init, and other helpers built for this registry (see your component page for concrete examples).";
+  "The dagster-community-components-cli package installs the dagster-component program on your PATH. add is one subcommand—the same binary includes search, info, schema, list, update, remove, init, and other helpers built for this registry (see the CLI README and each component page).";
 
 export const REGISTRY_DAGSTER_SPEC = ">=1.10.0";
 export const REGISTRY_PYTHON_SPEC = ">=3.10";
 
 export const COMMUNITY_CLI_REPO_WEB =
   "https://github.com/eric-thomas-dagster/dagster-community-components-cli";
-export const COMMUNITY_CLI_PIP_GIT_SPEC =
-  "git+https://github.com/eric-thomas-dagster/dagster-community-components-cli.git";
-/** Not on PyPI yet; copy hints use this name once published. */
+/** Maintainer docs; avoid duplicating install ladders on this site. */
+export const COMMUNITY_CLI_README_WEB =
+  "https://github.com/eric-thomas-dagster/dagster-community-components-cli/blob/main/README.md";
+
 export const COMMUNITY_CLI_PYPI_PACKAGE = "dagster-community-components-cli";
 
 export const UV_INSTALL_SHELL = "curl -LsSf https://astral.sh/uv/install.sh | sh";
@@ -34,6 +34,29 @@ export const DAGSTER_PLUS_INSTALLER_TREE = COMMUNITY_INSTALLER_TEMPLATE_TREE;
 /** Placeholder on marketing/home copy—real pages substitute the manifest id. */
 export const CLI_HOME_PLACEHOLDER_COMPONENT_ID = "your_component_id";
 
+/** Single copy block: uvx one-liner + pip install + add (PyPI). */
+export function canonicalInstallSnippet(componentIdPlaceholder: string): string {
+  return [
+    "# Zero-install (recommended) — runs the CLI on demand:",
+    `uvx --from ${COMMUNITY_CLI_PYPI_PACKAGE} dagster-component add ${componentIdPlaceholder}`,
+    "",
+    "# Or install the CLI permanently:",
+    `pip install ${COMMUNITY_CLI_PYPI_PACKAGE}`,
+    `dagster-component add ${componentIdPlaceholder}`,
+  ].join("\n");
+}
+
+export type CliQuickRefLine = { command: string; note: string };
+
+/** Shown under the canonical install on Home. */
+export const CLI_QUICK_REFERENCE_LINES: CliQuickRefLine[] = [
+  { command: "dagster-component search <query>", note: "Find by id / name / description / tags." },
+  { command: "dagster-component info <id>", note: "Details before installing." },
+  { command: "dagster-component add <id>", note: "Install into the current project." },
+  { command: "dagster-component add <id>@v1.2.0", note: "Pin to a tag." },
+  { command: "dagster-component add <id>@a1b2c3d", note: "Pin to a commit SHA." },
+];
+
 /** Dagster runtime remains a project prerequisite; not installed by the component CLI. */
 export function pipInstallDagsterCore(): string {
   return `python -m pip install -U "dagster${REGISTRY_DAGSTER_SPEC}"`;
@@ -46,7 +69,7 @@ export const INSTALL_PYPI_NOTE =
   "The CLI installs this component's declared pip dependencies; you still need Dagster in your environment for your code location—see above.";
 
 export const ADD_SINGLE_COMPONENT_SUMMARY =
-  "Use dagster-component from dagster-community-components-cli at your project root: it finds your Dagster project, copies this template, and installs declared pip dependencies. The default line below uses uvx so you can run the full CLI without pip-installing the package first—expand for pip-from-GitHub or (soon) PyPI.";
+  "From your Dagster code-location root, run dagster-component add with this template's id (PyPI package dagster-community-components-cli, or uvx without installing). The CLI copies the template and installs declared pip dependencies. Full options and workflows are in the CLI README—link below.";
 
 export const CLI_YAML_LSP_CALLOUT =
   "The CLI prepends a `# yaml-language-server: $schema=<url>` comment to example.yaml—if you use the YAML language server (VS Code YAML extension, Cursor, Neovim yamlls) you get validation and hover against this template's schema without extra config.";
@@ -54,32 +77,23 @@ export const CLI_YAML_LSP_CALLOUT =
 export const CLI_AI_INIT_CALLOUT =
   "Run dagster-component init in your repo to drop CLAUDE.md, .cursorrules, and .github/copilot-instructions.md so assistants favor dagster-component search / add instead of inventing components from scratch.";
 
+/** One-liner for component detail and examples. */
+export function cliUvxAddOneLine(componentId: string): string {
+  return `uvx --from ${COMMUNITY_CLI_PYPI_PACKAGE} dagster-component add ${componentId}`;
+}
+
 export function cliOption1Uvx(componentId: string): string {
-  return [
-    "uvx --from git+https://github.com/eric-thomas-dagster/dagster-community-components-cli.git \\",
-    `    dagster-component add ${componentId}`,
-  ].join("\n");
+  return cliUvxAddOneLine(componentId);
 }
 
-/** Home / AI section: bootstrap assistant config files without installing the CLI into the project venv. */
+/** Home / AI section: bootstrap assistant config without pip-installing the CLI. */
 export function cliOption1UvxInit(): string {
-  return [
-    "uvx --from git+https://github.com/eric-thomas-dagster/dagster-community-components-cli.git \\",
-    "    dagster-component init",
-  ].join("\n");
+  return `uvx --from ${COMMUNITY_CLI_PYPI_PACKAGE} dagster-component init`;
 }
 
-export function cliOption2PipGit(componentId: string): string {
-  return [`pip install ${COMMUNITY_CLI_PIP_GIT_SPEC}`, `dagster-component add ${componentId}`].join("\n");
-}
-
-/** PyPI path is forward-looking; first line is a comment so copy-paste is safe once published. */
-export function cliOption3Pypi(componentId: string): string {
-  return [
-    "# Coming soon — package not on PyPI yet",
-    `pip install ${COMMUNITY_CLI_PYPI_PACKAGE}`,
-    `dagster-component add ${componentId}`,
-  ].join("\n");
+/** Permanent install + add (two lines). */
+export function cliPipInstallThenAdd(componentId: string): string {
+  return [`pip install ${COMMUNITY_CLI_PYPI_PACKAGE}`, `dagster-component add ${componentId}`].join("\n");
 }
 
 export type CliExtraCommand = { command: string; detail: string };
@@ -87,12 +101,13 @@ export type CliExtraCommand = { command: string; detail: string };
 /** Detail page: CLI commands with this component’s id where it helps. */
 export function cliExtraCommandsForComponent(componentId: string): CliExtraCommand[] {
   return [
-    { command: "dagster-component search <keyword>", detail: "Find a component in the catalog." },
-    { command: `dagster-component info ${componentId}`, detail: "Show details and URLs for this component." },
+    { command: `dagster-component search <query>`, detail: "Find by id, name, description, or tags." },
+    { command: `dagster-component info ${componentId}`, detail: "Details and URLs for this component." },
     { command: `dagster-component schema ${componentId}`, detail: "Print attribute schema—useful for AI assistants." },
+    { command: `dagster-component add ${componentId}`, detail: "Install into the current project." },
     {
       command: `dagster-component add ${componentId}@v1.2.0`,
-      detail: "Install pinned to a tag, commit, or branch (example ref).",
+      detail: "Pin to a tag, branch, or commit ref.",
     },
     { command: "dagster-component list", detail: "List components installed in the current project." },
     {

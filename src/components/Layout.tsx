@@ -107,11 +107,28 @@ export function Layout({ children }: { children: ReactNode }) {
               title="Search catalog (⌘K)"
             >
               <Search size={16} strokeWidth={2} aria-hidden />
-              <span>Search</span>
+              <span>Search</span            >
               <span className="kbd" style={{ marginLeft: 2 }}>
                 ⌘K
               </span>
             </button>
+            <Link
+              to="/examples"
+              style={{
+                padding: "8px 14px",
+                borderRadius: 8,
+                fontSize: 14,
+                fontWeight: 500,
+                color: loc.pathname.startsWith("/examples") ? "var(--text)" : "var(--text-muted)",
+                background: loc.pathname.startsWith("/examples")
+                  ? "rgba(124, 58, 237, 0.15)"
+                  : "transparent",
+                textDecoration: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Examples
+            </Link>
             <Link
               to={{ pathname: "/", hash: "get-started" }}
               style={hashNavLinkStyle(onHome && loc.hash === "#get-started")}

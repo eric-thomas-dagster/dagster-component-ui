@@ -21,8 +21,7 @@ import {
   CLI_YAML_LSP_CALLOUT,
   cliExtraCommandsForComponent,
   cliOption1Uvx,
-  cliOption2PipGit,
-  cliOption3Pypi,
+  COMMUNITY_CLI_README_WEB,
   COMMUNITY_CLI_REPO_WEB,
   COMMUNITY_CLI_VALUE_PROP,
   COMMUNITY_INSTALLER_CALLOUT,
@@ -67,7 +66,6 @@ export function ComponentDetail() {
   const [loading, setLoading] = useState(true);
   const [depsExpanded, setDepsExpanded] = useState(false);
   const [setupExpanded, setSetupExpanded] = useState(false);
-  const [cliMoreInstallExpanded, setCliMoreInstallExpanded] = useState(false);
   const [docViewer, setDocViewer] = useState<{
     title: string;
     url: string;
@@ -146,8 +144,6 @@ export function ComponentDetail() {
   const cid = useMemo(() => (manifest ? componentId(manifest) : ""), [manifest]);
 
   const cliUvx = useMemo(() => cliOption1Uvx(cid), [cid]);
-  const cliPipGit = useMemo(() => cliOption2PipGit(cid), [cid]);
-  const cliPypi = useMemo(() => cliOption3Pypi(cid), [cid]);
   const cliExtras = useMemo(() => (cid ? cliExtraCommandsForComponent(cid) : []), [cid]);
 
   const easyAdd = useMemo(() => {
@@ -473,11 +469,15 @@ export function ComponentDetail() {
                 {ADD_SINGLE_COMPONENT_SUMMARY}
               </p>
               <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "0 0 8px", lineHeight: 1.55 }}>
-                Source:{" "}
+                Maintained in{" "}
                 <a href={COMMUNITY_CLI_REPO_WEB} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
                   dagster-community-components-cli
-                </a>{" "}
-                on GitHub. Run installs from your Dagster code-location root (the CLI detects the project).
+                </a>
+                {" "}(PyPI).{" "}
+                <a href={COMMUNITY_CLI_README_WEB} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
+                  Full CLI README
+                </a>
+                {" — don’t duplicate here."}
               </p>
               <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 16px", lineHeight: 1.55 }}>
                 {COMMUNITY_CLI_VALUE_PROP}
@@ -507,53 +507,21 @@ export function ComponentDetail() {
                 {INSTALL_PYPI_NOTE} {INSTALL_VERSION_NOTE}
               </p>
 
-              <h3 style={{ ...installOptionHeadingStyle, marginTop: 14 }}>Recommended — uvx (zero CLI install)</h3>
+              <h3 style={{ ...installOptionHeadingStyle, marginTop: 14 }}>Add this template</h3>
               <InstallCodeBlock text={cliUvx} copyLabel="Copy" />
               <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "12px 0 0", lineHeight: 1.55 }}>
-                Don&apos;t have uv yet?{" "}
-                <code className="mono" style={{ fontSize: 12 }}>{UV_INSTALL_SHELL}</code> (macOS / Linux) or see{" "}
+                Uses <span className="mono">uvx</span> and the PyPI package name (no separate CLI install). Need{" "}
+                <span className="mono">uv</span>?{" "}
+                <code className="mono" style={{ fontSize: 12 }}>{UV_INSTALL_SHELL}</code> (macOS / Linux) or{" "}
                 <a href={UV_INSTALL_DOCS} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
                   uv installation
                 </a>
                 .
               </p>
 
-              <button
-                type="button"
-                onClick={() => setCliMoreInstallExpanded((e) => !e)}
-                style={{
-                  background: "transparent",
-                  border: "1px solid var(--border)",
-                  color: "var(--cyan)",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  padding: "8px 14px",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  marginTop: 16,
-                  fontFamily: "inherit",
-                }}
-              >
-                {cliMoreInstallExpanded
-                  ? "▲ Hide pip install options"
-                  : "▼ Other ways to install (pip from GitHub, PyPI soon)"}
-              </button>
-              {cliMoreInstallExpanded && (
-                <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 2 }}>
-                  <h3 style={{ ...installOptionHeadingStyle, marginTop: 8 }}>pip install from GitHub</h3>
-                  <InstallCodeBlock text={cliPipGit} copyLabel="Copy" />
-                  <h3 style={installOptionHeadingStyle}>
-                    pip install from PyPI{" "}
-                    <span style={{ fontSize: 13, fontWeight: 500, color: "var(--text-dim)" }}>(coming soon)</span>
-                  </h3>
-                  <InstallCodeBlock text={cliPypi} copyLabel="Copy" />
-                </div>
-              )}
-
               <h3 style={{ ...installOptionHeadingStyle, marginTop: 22 }}>Built-in commands (same dagster-component)</h3>
               <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "0 0 12px", lineHeight: 1.55 }}>
-                These run as subcommands of the program you install with dagster-community-components-cli or via
-                uvx—one binary, not a one-off add script.
+                From PyPI <span className="mono">dagster-community-components-cli</span> or <span className="mono">uvx</span>—one binary.
               </p>
               <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 12 }}>
                 {cliExtras.map((row) => (
