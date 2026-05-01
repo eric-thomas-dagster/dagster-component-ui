@@ -88,30 +88,33 @@ export function Layout({ children }: { children: ReactNode }) {
             />
             <span style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>Component Registry</span>
           </Link>
-          <nav style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <button
-              type="button"
-              onClick={() => openSearchPalette()}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "8px 14px",
-                borderRadius: 8,
-                border: "1px solid var(--border)",
-                background: "var(--bg-card)",
-                color: "var(--text-muted)",
-                fontSize: 14,
-                fontWeight: 500,
-              }}
-              title="Search catalog (⌘K)"
-            >
-              <Search size={16} strokeWidth={2} aria-hidden />
-              <span>Search</span>
-              <span className="kbd" style={{ marginLeft: 2 }}>
-                ⌘K
-              </span>
-            </button>
+          <nav style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => openSearchPalette()}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 14px",
+                  borderRadius: 8,
+                  border: "1px solid var(--border)",
+                  background: "var(--bg-card)",
+                  color: "var(--text-muted)",
+                  fontSize: 14,
+                  fontWeight: 500,
+                }}
+                title="Search catalog (⌘K)"
+              >
+                <Search size={16} strokeWidth={2} aria-hidden />
+                <span>Search</span>
+                <span className="kbd" style={{ marginLeft: 2 }}>
+                  ⌘K
+                </span>
+              </button>
+              <ThemeToggle />
+            </div>
             <Link
               to="/examples"
               style={{
@@ -143,7 +146,6 @@ export function Layout({ children }: { children: ReactNode }) {
             >
               AI assistants
             </Link>
-            <ThemeToggle />
             {nav.map((item) =>
               "to" in item ? (
                 <Link
