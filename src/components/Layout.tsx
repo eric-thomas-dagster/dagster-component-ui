@@ -21,7 +21,7 @@ const nav: NavItem[] = [
   },
 ];
 
-function hashNavLinkStyle(active: boolean): CSSProperties {
+function navPillStyle(active: boolean): CSSProperties {
   return {
     padding: "8px 14px",
     borderRadius: 8,
@@ -36,7 +36,7 @@ function hashNavLinkStyle(active: boolean): CSSProperties {
 
 export function Layout({ children }: { children: ReactNode }) {
   const loc = useLocation();
-  const onHome = loc.pathname === "/";
+  const onRegistry = loc.pathname === "/";
   const { openSearchPalette } = useCatalog();
 
   return (
@@ -107,7 +107,7 @@ export function Layout({ children }: { children: ReactNode }) {
               title="Search catalog (⌘K)"
             >
               <Search size={16} strokeWidth={2} aria-hidden />
-              <span>Search</span            >
+              <span>Search</span>
               <span className="kbd" style={{ marginLeft: 2 }}>
                 ⌘K
               </span>
@@ -130,16 +130,16 @@ export function Layout({ children }: { children: ReactNode }) {
               Examples
             </Link>
             <Link
-              to={{ pathname: "/", hash: "get-started" }}
-              style={hashNavLinkStyle(onHome && loc.hash === "#get-started")}
+              to="/get-started"
+              style={navPillStyle(loc.pathname === "/get-started")}
               title="Install the CLI and add templates (uvx or pip)"
             >
               Get started
             </Link>
             <Link
-              to={{ pathname: "/", hash: "ai-assistant" }}
-              style={hashNavLinkStyle(onHome && loc.hash === "#ai-assistant")}
-              title="Claude, Cursor, GitHub Copilot — dagster-component init adds repo hints"
+              to="/ai-assistants"
+              style={navPillStyle(loc.pathname === "/ai-assistants")}
+              title="Claude, Cursor, GitHub Copilot — dagster-component init and workflows"
             >
               AI assistants
             </Link>
@@ -154,12 +154,9 @@ export function Layout({ children }: { children: ReactNode }) {
                     borderRadius: 8,
                     fontSize: 14,
                     fontWeight: 500,
-                    color:
-                      onHome && item.to === "/" && !loc.hash ? "var(--text)" : "var(--text-muted)",
+                    color: onRegistry && item.to === "/" ? "var(--text)" : "var(--text-muted)",
                     background:
-                      onHome && item.to === "/" && !loc.hash
-                        ? "rgba(124, 58, 237, 0.15)"
-                        : "transparent",
+                      onRegistry && item.to === "/" ? "rgba(124, 58, 237, 0.15)" : "transparent",
                     textDecoration: "none",
                   }}
                 >

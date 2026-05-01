@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams, useLocation, Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import type { ManifestComponent } from "../types";
 import { useCatalog } from "../context/CatalogContext";
 import { ComponentCard } from "../components/ComponentCard";
@@ -8,22 +8,7 @@ import { matchesQuery, sortByRelevance } from "../lib/search";
 import { categoryLabel, formatDate } from "../lib/format";
 import { countDistinctBrandIntegrations, newestComponents } from "../lib/catalogStats";
 import { countVerificationBreakdown } from "../lib/verification";
-import {
-  INSTALL_PYPI_NOTE,
-  INSTALL_VERSION_NOTE,
-  pipInstallDagsterCore,
-  CLI_HOME_PLACEHOLDER_COMPONENT_ID,
-  canonicalInstallSnippet,
-  CLI_QUICK_REFERENCE_LINES,
-  COMMUNITY_CLI_README_WEB,
-  COMMUNITY_CLI_VALUE_PROP,
-  CLI_AI_INIT_CALLOUT,
-  cliOption1UvxInit,
-  UV_INSTALL_DOCS,
-  UV_INSTALL_SHELL,
-} from "../lib/registryRequirements";
 import { PopularCategoryCard } from "../components/PopularCategoryCard";
-import { CopyButton } from "../components/CopyButton";
 
 const PAGE_SIZE = 48;
 
@@ -123,7 +108,6 @@ export function Home() {
   } = useCatalog();
   const [catalogRefreshBusy, setCatalogRefreshBusy] = useState(false);
   const [localQ, setLocalQ] = useState(qParam);
-  const loc = useLocation();
 
   const refreshCatalogNow = useCallback(async () => {
     setCatalogRefreshBusy(true);
@@ -137,16 +121,6 @@ export function Home() {
   useEffect(() => {
     setLocalQ(qParam);
   }, [qParam]);
-
-  useEffect(() => {
-    if (loadError || !loc.hash || components.length <= 0) return;
-    const id = loc.hash.slice(1);
-    if (id !== "get-started" && id !== "ai-assistant") return;
-    const t = window.setTimeout(() => {
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
-    return () => clearTimeout(t);
-  }, [loadError, loc.hash, loc.pathname, components.length]);
 
   const categoryCounts = useMemo(() => {
     const m = new Map<string, number>();
@@ -623,200 +597,6 @@ export function Home() {
           ))}
         </div>
       </section>
-
-      {total > 0 && (
-        <>
-          <section
-            id="get-started"
-            style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 32px" }}
-          >
-          <h2 style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-dim)", margin: "0 0 12px" }}>
-            Ready to get started?
-          </h2>
-          <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", lineHeight: 1.6 }}>
-            Install <span className="mono">dagster-community-components-cli</span> from PyPI (or run via{" "}
-            <span className="mono">uvx</span> without installing). From your project root,{" "}
-            <span className="mono">dagster-component add</span> copies a template and installs its declared pip
-            dependencies. You still need <span className="mono">dagster</span> for your code location—see below. On each
-            component page, the command uses that template&apos;s id instead of{" "}
-            <code className="mono" style={{ fontSize: 13 }}>{CLI_HOME_PLACEHOLDER_COMPONENT_ID}</code>.
-          </p>
-          <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 14px", lineHeight: 1.6 }}>
-            {COMMUNITY_CLI_VALUE_PROP}{" "}
-            <a href={COMMUNITY_CLI_README_WEB} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
-              CLI README on GitHub
-            </a>{" "}
-            has the full command reference—this page stays short.
-          </p>
-
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              gap: 12,
-              padding: "14px 16px",
-              borderRadius: 12,
-              border: "1px solid var(--border)",
-              background: "var(--bg-card)",
-              width: "100%",
-              marginBottom: 18,
-            }}
-          >
-            <code
-              className="mono"
-              style={{
-                fontSize: 12,
-                color: "var(--text-muted)",
-                flex: "1 1 280px",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
-              }}
-            >
-              {canonicalInstallSnippet(CLI_HOME_PLACEHOLDER_COMPONENT_ID)}
-            </code>
-            <CopyButton text={canonicalInstallSnippet(CLI_HOME_PLACEHOLDER_COMPONENT_ID)} label="Copy" />
-          </div>
-
-          <div
-            style={{
-              padding: "14px 16px",
-              borderRadius: 12,
-              border: "1px solid var(--border)",
-              background: "var(--bg-elevated)",
-              marginBottom: 18,
-            }}
-          >
-            <h3
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: "var(--text-dim)",
-                margin: "0 0 12px",
-              }}
-            >
-              Quick reference
-            </h3>
-            <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
-              {CLI_QUICK_REFERENCE_LINES.map((row) => (
-                <li key={row.command}>
-                  <code
-                    className="mono"
-                    style={{
-                      fontSize: 12,
-                      display: "block",
-                      color: "var(--cyan)",
-                      marginBottom: 4,
-                      wordBreak: "break-word",
-                    }}
-                  >
-                    {row.command}
-                  </code>
-                  <span style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.45 }}>{row.note}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", margin: "0 0 6px", letterSpacing: "0.04em" }}>
-            Prerequisite — Dagster runtime
-          </p>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              gap: 12,
-              padding: "14px 16px",
-              borderRadius: 12,
-              border: "1px solid var(--border)",
-              background: "var(--bg-card)",
-              width: "100%",
-            }}
-          >
-            <code className="mono" style={{ fontSize: 13, color: "var(--text-muted)", flex: "1 1 200px" }}>
-              {pipInstallDagsterCore()}
-            </code>
-            <CopyButton text={pipInstallDagsterCore()} label="Copy" />
-          </div>
-          <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "10px 0 0", lineHeight: 1.5 }}>
-            Don&apos;t have <span className="mono">uv</span> for uvx?{" "}
-            <code className="mono" style={{ fontSize: 11 }}>{UV_INSTALL_SHELL}</code> (macOS / Linux) or{" "}
-            <a href={UV_INSTALL_DOCS} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
-              uv installation
-            </a>
-            .
-          </p>
-          <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "8px 0 0", lineHeight: 1.5 }}>
-            {INSTALL_PYPI_NOTE} {INSTALL_VERSION_NOTE}
-          </p>
-          </section>
-
-          <section
-            id="ai-assistant"
-            style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 40px" }}
-          >
-            <h2
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-                color: "var(--text-dim)",
-                margin: "0 0 12px",
-              }}
-            >
-              AI coding assistants
-            </h2>
-            <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", lineHeight: 1.6 }}>
-              Use the same catalog with Claude, Cursor, or GitHub Copilot: give the model this site, run{" "}
-              <span className="mono">dagster-component</span> for real package names, and prefer{" "}
-              <span className="mono">add</span> / <span className="mono">search</span> /{" "}
-              <span className="mono">schema</span> over inventing layout from scratch.
-            </p>
-            <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", lineHeight: 1.6 }}>
-              {CLI_AI_INIT_CALLOUT}
-            </p>
-            <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", margin: "0 0 6px", letterSpacing: "0.04em" }}>
-              Bootstrap with uvx (same as add)
-            </p>
-            <div
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                alignItems: "center",
-                gap: 12,
-                padding: "14px 16px",
-                borderRadius: 12,
-                border: "1px solid var(--border)",
-                background: "var(--bg-card)",
-                width: "100%",
-                marginBottom: 8,
-              }}
-            >
-              <code
-                className="mono"
-                style={{
-                  fontSize: 12,
-                  color: "var(--text-muted)",
-                  flex: "1 1 280px",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                }}
-              >
-                {cliOption1UvxInit()}
-              </code>
-              <CopyButton text={cliOption1UvxInit()} label="Copy" />
-            </div>
-            <p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0, lineHeight: 1.5 }}>
-              After <span className="mono">init</span>, open a <Link to="/">component page</Link> and use{" "}
-              <span className="mono">dagster-component schema &lt;id&gt;</span> for structured YAML help.
-            </p>
-          </section>
-        </>
-      )}
 
       {!explorationActive && total > 0 && (
         <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 48px" }}>
