@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  AiAssistantUiMock,
+  MockChatBody,
+  MockEditorBody,
+  MockSplitIdeBody,
+} from "../components/AiAssistantUiMock";
 import { CopyButton } from "../components/CopyButton";
 import {
   CLI_AI_INIT_CALLOUT,
@@ -192,6 +198,21 @@ export function AiAssistantsPage() {
           the same policy from that file into a Project instruction, then attach or link specific registry pages.
         </li>
       </ul>
+      <AiAssistantUiMock
+        windowTitle="my-dagster-repo — CLAUDE.md"
+        variantLabel="Claude"
+        caption="Illustrative mockup (not a real product screenshot): Claude Code picks up committed CLAUDE.md at the repo root—your wording will match what dagster-component init writes and what you edit."
+      >
+        <MockEditorBody
+          filepath="CLAUDE.md"
+          lines={[
+            "# Dagster components — project rules",
+            `Registry (canonical template ids): ${registryRoot}`,
+            "Add templates from the project root: dagster-component add <id>",
+            "Do not invent component names. Use dagster-component search / info / schema before YAML.",
+          ]}
+        />
+      </AiAssistantUiMock>
       <h3 style={sectionH3}>How to leverage components</h3>
       <ol style={listStyle}>
         <li>
@@ -256,6 +277,31 @@ Generate a minimal \`example.yaml\` for dev only. Use only attribute keys from t
           (or copy/paste) so the model does not hallucinate keys.
         </li>
       </ul>
+      <AiAssistantUiMock
+        windowTitle="my-dagster-repo — Composer"
+        variantLabel="Cursor"
+        caption="Illustrative mockup: Cursor applies .cursorrules (and other rules) to Chat/Composer. Mention the registry URL and use @ references so the model sees real paths and ids."
+      >
+        <MockSplitIdeBody
+          sidebarLabel="Rules"
+          sidebarHighlight=".cursorrules"
+          panelTitle="Composer"
+          panelContent={
+            <MockChatBody
+              messages={[
+                {
+                  role: "user",
+                  text: `@Codebase @example.yaml\n\nRegistry for ids: ${registryRoot}\nSuggest dagster-component add for a REST ingest template only if the id exists in that catalog.`,
+                },
+                {
+                  role: "assistant",
+                  text: "I'll only use ids from that registry. Run `dagster-component schema <id>` and paste the output—then I'll align example.yaml with those keys only.",
+                },
+              ]}
+            />
+          }
+        />
+      </AiAssistantUiMock>
       <h3 style={sectionH3}>How to leverage components</h3>
       <ol style={listStyle}>
         <li>
@@ -302,6 +348,37 @@ Do not invent component ids.
           <span className="mono">dagster-component schema</span> before YAML&quot;, and &quot;no made-up template names&quot;.
         </li>
       </ul>
+      <AiAssistantUiMock
+        windowTitle="VS Code — Copilot Chat + repo instructions"
+        variantLabel="Copilot"
+        caption="Illustrative mockup: keep copilot-instructions.md short; Copilot Chat picks up repo context when the workspace is your Dagster project."
+      >
+        <>
+          <MockEditorBody
+            filepath=".github/copilot-instructions.md"
+            lines={[
+              "# Dagster components",
+              `- Template catalog: ${registryRoot}`,
+              "- Use dagster-component search / schema; do not invent component ids.",
+              "- Before YAML changes, user should run: dagster-component schema <id>",
+            ]}
+          />
+          <div style={{ borderTop: "1px solid var(--border)" }}>
+            <MockChatBody
+              messages={[
+                {
+                  role: "user",
+                  text: `Which id on ${registryRoot} fits a dataframe → Parquet sink? Give the exact dagster-component add command.`,
+                },
+                {
+                  role: "assistant",
+                  text: "I'll match a catalog id from that registry only. Here's the add line; next paste `dagster-component schema` output before we edit YAML.",
+                },
+              ]}
+            />
+          </div>
+        </>
+      </AiAssistantUiMock>
       <h3 style={sectionH3}>How to leverage components</h3>
       <ol style={listStyle}>
         <li>
