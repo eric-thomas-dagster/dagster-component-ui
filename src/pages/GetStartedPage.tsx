@@ -60,9 +60,14 @@ export function GetStartedPage() {
         .
       </p>
       <p style={{ fontSize: 14, color: "var(--text-dim)", margin: "0 0 20px", lineHeight: 1.55 }}>
-        Using <Link to="/ai-assistants" style={{ color: "var(--cyan)" }}>Claude, Cursor, or Copilot</Link>? Run{" "}
-        <span className="mono">dagster-component init</span> in your repo so assistants prefer real catalog commands over
-        inventing YAML.
+        Using <Link to="/ai-assistants" style={{ color: "var(--cyan)" }}>Claude, Cursor, or Copilot</Link>? From your project
+        root run{" "}
+        <span className="mono">uvx --from dagster-community-components-cli dagster-component init</span> so assistants prefer
+        real catalog commands over inventing YAML. See the{" "}
+        <Link to="/ai-assistants" style={{ color: "var(--cyan)" }}>
+          AI assistants
+        </Link>{" "}
+        page for details.
       </p>
 
       <div

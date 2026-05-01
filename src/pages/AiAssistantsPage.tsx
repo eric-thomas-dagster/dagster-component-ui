@@ -1,39 +1,32 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import {
-  AiAssistantUiMock,
-  MockChatBody,
-  MockEditorBody,
-  MockSplitIdeBody,
-} from "../components/AiAssistantUiMock";
 import { CopyButton } from "../components/CopyButton";
-import {
-  CLI_AI_INIT_CALLOUT,
-  COMMUNITY_CLI_README_WEB,
-  COMMUNITY_CLI_VALUE_PROP,
-  COMMUNITY_CLI_PYPI_PACKAGE,
-  cliOption1UvxInit,
-} from "../lib/registryRequirements";
+import { COMMUNITY_CLI_README_WEB, CLI_QUICK_COMMANDS_UVX_PREAMBLE } from "../lib/registryRequirements";
+import { useCatalog } from "../context/CatalogContext";
 
 const DEFAULT_PUBLIC_ORIGIN = "https://dagster-component-ui.vercel.app";
+
+/** Single line shown once in the hero — no leading `$`. */
+const INIT_UVX_LINE =
+  "uvx --from dagster-community-components-cli dagster-component init";
 
 const sectionH2: React.CSSProperties = {
   fontSize: 17,
   fontWeight: 700,
   color: "var(--text)",
-  margin: "32px 0 12px",
+  margin: "36px 0 14px",
   letterSpacing: "-0.02em",
 };
 
-const sectionH3: React.CSSProperties = {
+const toolH3: React.CSSProperties = {
   fontSize: 14,
   fontWeight: 600,
-  color: "var(--text-muted)",
-  margin: "18px 0 8px",
+  color: "var(--text)",
+  margin: "20px 0 8px",
 };
 
 const mutedP: React.CSSProperties = {
-  fontSize: 14,
+  fontSize: 15,
   color: "var(--text-muted)",
   lineHeight: 1.65,
   margin: "0 0 12px",
@@ -44,7 +37,7 @@ const listStyle: React.CSSProperties = {
   paddingLeft: 20,
   color: "var(--text-muted)",
   lineHeight: 1.65,
-  fontSize: 14,
+  fontSize: 15,
 };
 
 const promptBox: React.CSSProperties = {
@@ -61,7 +54,7 @@ const promptBox: React.CSSProperties = {
 
 function ExamplePrompt({ text, label }: { text: string; label: string }) {
   return (
-    <div style={{ marginBottom: 16 }}>
+    <div style={{ marginBottom: 20 }}>
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 6 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)" }}>{label}</span>
         <CopyButton text={text.trim()} label="Copy prompt" />
@@ -72,349 +65,198 @@ function ExamplePrompt({ text, label }: { text: string; label: string }) {
 }
 
 export function AiAssistantsPage() {
+  const { catalogTotal } = useCatalog();
   const [origin, setOrigin] = useState(DEFAULT_PUBLIC_ORIGIN);
+  const [promptsOpen, setPromptsOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") setOrigin(window.location.origin);
   }, []);
 
   const registryRoot = origin.replace(/\/$/, "");
-  const exampleComponentUrl = `${registryRoot}/c/rest_api_fetcher`;
+  const countPhrase =
+    catalogTotal > 0
+      ? `about ${catalogTotal.toLocaleString()} components`
+      : "about 470 components";
+
+  const discoveryPrompt = `
+You are helping in a Dagster repo that uses the community component catalog at ${registryRoot}.
+
+Rules:
+- Do not invent component folder names or ids. Use only ids from that registry or from \`dagster-component search\` / \`info\` (via \`uvx --from dagster-community-components-cli dagster-component …\`, or plain \`dagster-component\` if installed globally).
+- To add a template, the user runs \`dagster-component add <id>\` the same way from the project root (see Get Started on the site).
+
+Task: They want to ingest from a REST API. Search conceptually (I'll run commands—or you suggest the exact search term), then output:
+1) The best-matching catalog id
+2) The exact add command line (uvx or global, matching their setup)
+3) A short plan to run \`dagster-component schema <id>\` before writing YAML
+`.trim();
+
+  const yamlPrompt = `
+Here is the output of \`dagster-component schema rest_api_fetcher\` (via uvx or a global CLI install — I will paste it in the next message).
+
+Generate a minimal \`example.yaml\` for dev only. Use only attribute keys from the schema. If something is required and unknown, use a placeholder and list it explicitly.
+`.trim();
 
   return (
-    <div style={{ maxWidth: 820, margin: "0 auto", padding: "32px 24px 64px" }}>
+    <div style={{ maxWidth: 720, margin: "0 auto", padding: "32px 24px 64px" }}>
       <p style={{ margin: "0 0 8px" }}>
         <Link to="/" style={{ fontSize: 14, color: "var(--cyan)", textDecoration: "none" }}>
           ← Registry
         </Link>
       </p>
-      <p
-        style={{
-          fontSize: 13,
-          fontWeight: 600,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: "var(--text-dim)",
-          margin: "16px 0 12px",
-        }}
-      >
-        AI IDEs &amp; assistants
-      </p>
-      <h1
-        style={{
-          fontSize: "clamp(1.75rem, 4vw, 2.25rem)",
-          fontWeight: 700,
-          letterSpacing: "-0.03em",
-          margin: "0 0 16px",
-          lineHeight: 1.15,
-        }}
-      >
-        Claude, Cursor, Copilot: how to use this component catalog
-      </h1>
-
-      <p style={{ ...mutedP, fontSize: 15 }}>
-        Models guess wrong if they invent component names or YAML. You get predictable output when the repo (and your
-        prompts) point to <strong style={{ color: "var(--text)" }}>real template ids</strong>,{" "}
-        <strong style={{ color: "var(--text)" }}>this registry</strong>, and the{" "}
-        <strong style={{ color: "var(--text)" }}>
-          <span className="mono">dagster-component</span>
-        </strong>{" "}
-        CLI. Below is what to do in each tool—files to add, what the model reads, and prompts you can paste verbatim.
+      <p style={{ ...mutedP, marginTop: 16 }}>
+        Point your coding assistant at this registry and the <span className="mono">dagster-component</span> CLI so it uses
+        real template ids and workflows instead of inventing YAML. The one-step setup is below.
       </p>
 
-      <div
+      {/* Section 1 — TL;DR hero */}
+      <section
         style={{
-          padding: "16px 18px",
-          borderRadius: 12,
+          marginTop: 20,
+          padding: "28px 26px 32px",
+          borderRadius: 14,
           border: "1px solid var(--border)",
+          borderLeft: "4px solid var(--cyan)",
           background: "var(--bg-card)",
-          marginBottom: 8,
+          boxShadow: "0 4px 24px rgba(0, 0, 0, 0.06)",
         }}
       >
-        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text)", margin: "0 0 8px" }}>
-          One-time: teach the repo with <span className="mono">dagster-component init</span>
+        <h1
+          style={{
+            fontSize: "clamp(1.65rem, 4.2vw, 2.35rem)",
+            fontWeight: 700,
+            letterSpacing: "-0.03em",
+            margin: "0 0 18px",
+            lineHeight: 1.2,
+            color: "var(--text)",
+          }}
+        >
+          Use with Claude, Cursor, or Copilot
+        </h1>
+        <p style={{ ...mutedP, fontSize: 16, marginBottom: 14 }}>
+          One command. From your Dagster project root:
         </p>
-        <p style={{ ...mutedP, margin: 0 }}>
-          {CLI_AI_INIT_CALLOUT} Exact filenames can change with the CLI—see the{" "}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 12,
+            padding: "16px 18px",
+            borderRadius: 10,
+            background: "var(--code-bg)",
+            border: "1px solid var(--border)",
+            marginBottom: 20,
+          }}
+        >
+          <code
+            className="mono"
+            style={{
+              fontSize: 14,
+              color: "var(--text)",
+              flex: "1 1 240px",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+          >
+            {INIT_UVX_LINE}
+          </code>
+          <CopyButton text={INIT_UVX_LINE} label="Copy" />
+        </div>
+        <p style={{ ...mutedP, fontSize: 15, marginBottom: 16 }}>
+          Prefer a global install? After{" "}
+          <Link to="/get-started" style={{ color: "var(--cyan)" }}>
+            Get started
+          </Link>
+          , run <span className="mono">dagster-component init</span> the same way.
+        </p>
+        <p style={{ ...mutedP, fontSize: 16, marginBottom: 16 }}>
+          Writes <span className="mono">CLAUDE.md</span>, <span className="mono">.cursorrules</span>, and{" "}
+          <span className="mono">.github/copilot-instructions.md</span> into your repo. <strong style={{ color: "var(--text)" }}>Commit them.</strong> Your AI assistants read them automatically — no
+          plugin, MCP server, or settings to configure.
+        </p>
+        <p style={{ ...mutedP, fontSize: 16, margin: 0 }}>
+          <strong style={{ color: "var(--text)" }}>What it teaches them:</strong> {countPhrase}, the{" "}
+          <span className="mono">search</span> / <span className="mono">info</span> / <span className="mono">schema</span> /{" "}
+          <span className="mono">add</span> workflow, when to suggest a community component versus writing custom code, and how to
+          generate YAML using the schema-aware autocomplete the CLI sets up.
+        </p>
+        <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "18px 0 0", lineHeight: 1.5 }}>
+          Exact filenames can change with the CLI—see the{" "}
           <a href={COMMUNITY_CLI_README_WEB} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
             CLI README
           </a>
-          . Commit the generated files so Claude Code, Cursor, and Copilot all see the same rules.
+          .
         </p>
-      </div>
+      </section>
 
-      <p style={{ fontSize: 12, fontWeight: 600, color: "var(--text-dim)", margin: "16px 0 6px", letterSpacing: "0.04em" }}>
-        Run once from your Dagster project root (uvx — no pip install required)
+      {/* Section 2 — How each tool picks it up */}
+      <h2 style={sectionH2}>How each tool picks it up</h2>
+
+      <h3 style={toolH3}>Anthropic Claude (Claude Code &amp; claude.ai)</h3>
+      <p style={mutedP}>
+        Claude Code reads <span className="mono">CLAUDE.md</span> at the repo root automatically — <span className="mono">init</span> already
+        wrote it. No further setup.
       </p>
-      <div
+      <p style={mutedP}>
+        For claude.ai chat / Projects, the repo files are not auto-loaded: paste the contents of{" "}
+        <span className="mono">CLAUDE.md</span> into a Project instruction.
+      </p>
+
+      <h3 style={toolH3}>Cursor</h3>
+      <p style={mutedP}>
+        Reads <span className="mono">.cursorrules</span> automatically in Chat and Composer.
+      </p>
+
+      <h3 style={toolH3}>GitHub Copilot</h3>
+      <p style={mutedP}>
+        Reads <span className="mono">.github/copilot-instructions.md</span> when the file is on your default branch. Commit
+        and push so Copilot sees it.
+      </p>
+
+      <p style={{ ...mutedP, marginBottom: 0 }}>
+        <strong style={{ color: "var(--text)" }}>Other assistants (same pattern):</strong> Windsurf, JetBrains AI,
+        Continue, Aider — paste the contents of <span className="mono">CLAUDE.md</span> (or any of the three files — they&apos;re
+        equivalent) into a project instruction or system prompt. Same content, same effect.
+      </p>
+
+      {/* Section 3 — Reference prompts (disclosure) */}
+      <h2 style={sectionH2}>Reference prompts</h2>
+      <button
+        type="button"
+        onClick={() => setPromptsOpen((o) => !o)}
         style={{
-          display: "flex",
-          flexWrap: "wrap",
+          display: "inline-flex",
           alignItems: "center",
-          gap: 12,
-          padding: "14px 16px",
-          borderRadius: 12,
+          gap: 8,
+          padding: "10px 16px",
+          borderRadius: 10,
           border: "1px solid var(--border)",
-          background: "var(--bg-card)",
-          width: "100%",
-          marginBottom: 8,
+          background: "var(--bg-elevated)",
+          color: "var(--cyan)",
+          fontSize: 14,
+          fontWeight: 600,
+          cursor: "pointer",
+          fontFamily: "inherit",
         }}
       >
-        <code
-          className="mono"
-          style={{
-            fontSize: 12,
-            color: "var(--text-muted)",
-            flex: "1 1 280px",
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-          }}
-        >
-          {cliOption1UvxInit()}
-        </code>
-        <CopyButton text={cliOption1UvxInit()} label="Copy" />
-      </div>
-      <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "0 0 24px", lineHeight: 1.55 }}>
-        Prefer a global install? After <Link to="/get-started">Get started</Link>, run{" "}
-        <span className="mono">dagster-component init</span> the same way.
+        {promptsOpen ? "▼ Hide prompts" : "▶ Show prompts"}
+      </button>
+      <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "10px 0 0", lineHeight: 1.5 }}>
+        Optional copy-paste starters; adapt the wording for your assistant. Registry URL uses{" "}
+        <span className="mono">{registryRoot}</span> from this tab.
       </p>
+      {promptsOpen && (
+        <div style={{ marginTop: 20 }}>
+          <ExamplePrompt label="Discovery + add" text={discoveryPrompt} />
+          <ExamplePrompt label="YAML from schema" text={yamlPrompt} />
+        </div>
+      )}
 
-      <p style={{ ...mutedP, fontSize: 14 }}>
-        {COMMUNITY_CLI_VALUE_PROP}
-      </p>
-
-      <h2 style={sectionH2}>Anthropic Claude (Claude Code &amp; claude.ai)</h2>
-      <h3 style={sectionH3}>What Claude reads</h3>
-      <ul style={listStyle}>
-        <li>
-          <strong style={{ color: "var(--text)" }}>Claude Code</strong> (the CLI coding agent) loads project context from
-          files in your repo. After <span className="mono">init</span>, <span className="mono">CLAUDE.md</span> at the
-          repository root is the primary place to tell Claude to prefer{" "}
-          <span className="mono">dagster-component</span> and this catalog—keep it committed.
-        </li>
-        <li>
-          <strong style={{ color: "var(--text)" }}>Claude.ai</strong> (chat or Projects): the repo files are not
-          automatic. Either work inside a synced project that includes <span className="mono">CLAUDE.md</span>, or paste
-          the same policy from that file into a Project instruction, then attach or link specific registry pages.
-        </li>
-      </ul>
-      <AiAssistantUiMock
-        windowTitle="my-dagster-repo — CLAUDE.md"
-        variantLabel="Claude"
-        caption="Illustrative mockup (not a real product screenshot): Claude Code picks up committed CLAUDE.md at the repo root—your wording will match what dagster-component init writes and what you edit."
-      >
-        <MockEditorBody
-          filepath="CLAUDE.md"
-          lines={[
-            "# Dagster components — project rules",
-            `Registry (canonical template ids): ${registryRoot}`,
-            "Add templates from the project root: dagster-component add <id>",
-            "Do not invent component names. Use dagster-component search / info / schema before YAML.",
-          ]}
-        />
-      </AiAssistantUiMock>
-      <h3 style={sectionH3}>How to leverage components</h3>
-      <ol style={listStyle}>
-        <li>
-          Open a template page on this site (example:{" "}
-          <a href={exampleComponentUrl} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
-            {exampleComponentUrl}
-          </a>
-          —swap <span className="mono">rest_api_fetcher</span> for your id). Give Claude that URL or paste the id and
-          description from the page.
-        </li>
-        <li>
-          In a terminal (or Claude Code bash), run{" "}
-          <span className="mono">dagster-component search &lt;keyword&gt;</span> and{" "}
-          <span className="mono">dagster-component info &lt;id&gt;</span> so the assistant reasons over CLI output, not
-          memory.
-        </li>
-        <li>
-          For YAML, run <span className="mono">dagster-component schema &lt;id&gt;</span> and paste stdout into the chat
-          before asking for <span className="mono">example.yaml</span>.
-        </li>
-      </ol>
-      <ExamplePrompt
-        label="Claude — discovery + add"
-        text={`
-You are helping in a Dagster repo that uses the community component catalog at ${registryRoot}.
-
-Rules:
-- Do not invent component folder names or ids. Use only ids from that registry or from \`dagster-component search\` / \`info\`.
-- To add a template, the user runs \`dagster-component add <id>\` from the project root (see Get Started on the site).
-
-Task: They want to ingest from a REST API. Search conceptually (I'll run commands—or you suggest the exact search term), then output:
-1) The best-matching catalog id
-2) The exact \`dagster-component add ...\` line
-3) A short plan to run \`dagster-component schema <id>\` before writing YAML
-`.trim()}
-      />
-      <ExamplePrompt
-        label="Claude — YAML from schema"
-        text={`
-Here is the output of \`dagster-component schema rest_api_fetcher\` (I will paste it in the next message).
-
-Generate a minimal \`example.yaml\` for dev only. Use only attribute keys from the schema. If something is required and unknown, use a placeholder and list it explicitly.
-`.trim()}
-      />
-
-      <h2 style={sectionH2}>Cursor</h2>
-      <h3 style={sectionH3}>What Cursor reads</h3>
-      <ul style={listStyle}>
-        <li>
-          <span className="mono">.cursorrules</span> at the repo root (and/or rules under{" "}
-          <span className="mono">.cursor/rules</span> if your team uses Rule files) steer Chat, Composer, and background
-          agents. <span className="mono">dagster-component init</span> seeds the stack your CLI version documents—merge with
-          your team standards if needed.
-        </li>
-        <li>
-          Cursor&apos;s terminal is full shell access: run{" "}
-          <span className="mono">uvx --from ${COMMUNITY_CLI_PYPI_PACKAGE} dagster-component …</span> the same as locally,
-          then paste command output into the chat with{" "}
-          <kbd className="kbd" style={{ fontSize: 11 }}>
-            @Terminal
-          </kbd>{" "}
-          (or copy/paste) so the model does not hallucinate keys.
-        </li>
-      </ul>
-      <AiAssistantUiMock
-        windowTitle="my-dagster-repo — Composer"
-        variantLabel="Cursor"
-        caption="Illustrative mockup: Cursor applies .cursorrules (and other rules) to Chat/Composer. Mention the registry URL and use @ references so the model sees real paths and ids."
-      >
-        <MockSplitIdeBody
-          sidebarLabel="Rules"
-          sidebarHighlight=".cursorrules"
-          panelTitle="Composer"
-          panelContent={
-            <MockChatBody
-              messages={[
-                {
-                  role: "user",
-                  text: `@Codebase @example.yaml\n\nRegistry for ids: ${registryRoot}\nSuggest dagster-component add for a REST ingest template only if the id exists in that catalog.`,
-                },
-                {
-                  role: "assistant",
-                  text: "I'll only use ids from that registry. Run `dagster-component schema <id>` and paste the output—then I'll align example.yaml with those keys only.",
-                },
-              ]}
-            />
-          }
-        />
-      </AiAssistantUiMock>
-      <h3 style={sectionH3}>How to leverage components</h3>
-      <ol style={listStyle}>
-        <li>
-          Pin the registry in a rule: e.g. &quot;Canonical template ids and docs live at {registryRoot}; never invent
-          ids.&quot;
-        </li>
-        <li>
-          In Composer, use <strong style={{ color: "var(--text)" }}>@</strong> references: e.g.{" "}
-          <span className="mono">@file</span> on your generated <span className="mono">example.yaml</span>, and paste a
-          registry URL in the message so the model can align with the template README.
-        </li>
-        <li>
-          Optionally add the YAML language server / schema URL from a component page (README / schema link) so inline
-          editing gets hovers—mention that in <span className="mono">.cursorrules</span> so agents keep the comment header
-          that points at <span className="mono">schema.json</span>.
-        </li>
-      </ol>
-      <ExamplePrompt
-        label="Cursor — Composer"
-        text={`
-@Codebase
-
-Project uses Dagster community components. Registry: ${registryRoot}
-
-I need to add a component that writes a dataframe to Parquet. Steps:
-1) Find the best catalog id (I'll accept either a registry link you pick or you tell me the exact \`dagster-component search\` query).
-2) Give the one-line install: \`uvx --from ${COMMUNITY_CLI_PYPI_PACKAGE} dagster-component add <id>\`.
-3) After I paste \`dagster-component schema <id>\` output, propose \`example.yaml\` with only schema keys.
-Do not invent component ids.
-`.trim()}
-      />
-
-      <h2 style={sectionH2}>GitHub Copilot (VS Code, JetBrains, Copilot chat)</h2>
-      <h3 style={sectionH3}>What Copilot reads</h3>
-      <ul style={listStyle}>
-        <li>
-          After <span className="mono">init</span>, look for{" "}
-          <span className="mono">.github/copilot-instructions.md</span>. GitHub documents this path for{" "}
-          <strong style={{ color: "var(--text)" }}>repository-wide</strong> guidance in Copilot Chat and related flows when
-          the file is on your default branch.
-        </li>
-        <li>
-          Keep instructions short and actionable: &quot;Use {registryRoot} for ids&quot;, &quot;run{" "}
-          <span className="mono">dagster-component schema</span> before YAML&quot;, and &quot;no made-up template names&quot;.
-        </li>
-      </ul>
-      <AiAssistantUiMock
-        windowTitle="VS Code — Copilot Chat + repo instructions"
-        variantLabel="Copilot"
-        caption="Illustrative mockup: keep copilot-instructions.md short; Copilot Chat picks up repo context when the workspace is your Dagster project."
-      >
-        <>
-          <MockEditorBody
-            filepath=".github/copilot-instructions.md"
-            lines={[
-              "# Dagster components",
-              `- Template catalog: ${registryRoot}`,
-              "- Use dagster-component search / schema; do not invent component ids.",
-              "- Before YAML changes, user should run: dagster-component schema <id>",
-            ]}
-          />
-          <div style={{ borderTop: "1px solid var(--border)" }}>
-            <MockChatBody
-              messages={[
-                {
-                  role: "user",
-                  text: `Which id on ${registryRoot} fits a dataframe → Parquet sink? Give the exact dagster-component add command.`,
-                },
-                {
-                  role: "assistant",
-                  text: "I'll match a catalog id from that registry only. Here's the add line; next paste `dagster-component schema` output before we edit YAML.",
-                },
-              ]}
-            />
-          </div>
-        </>
-      </AiAssistantUiMock>
-      <h3 style={sectionH3}>How to leverage components</h3>
-      <ol style={listStyle}>
-        <li>
-          In VS Code: open Copilot Chat, confirm the workspace is the Dagster repo so instruction files apply. Ask it to
-          propose an <span className="mono">add</span> command only after you or it have chosen an id from the registry.
-        </li>
-        <li>
-          For inline completions while editing YAML: structure matters—paste schema output into the chat first, or open
-          the template&apos;s <span className="mono">schema.json</span> in the editor so Copilot sees real keys.
-        </li>
-        <li>
-          On github.com, link issues/PRs to specific component pages so reviewers (and Copilot in the browser) share the
-          same id.
-        </li>
-      </ol>
-      <ExamplePrompt
-        label="Copilot Chat (VS Code)"
-        text={`
-Repository uses Dagster community component templates. Canonical ids: ${registryRoot}.
-
-Before suggesting YAML or file paths:
-- Prefer \`dagster-component search\` / \`info\` / \`schema\` over guessing.
-- If you recommend a component, include its registry URL and the exact \`dagster-component add <id>\` command.
-
-Now: help me pick a component for <describe task>.
-`.trim()}
-      />
-
-      <h2 style={sectionH2}>Other assistants (same pattern)</h2>
-      <p style={mutedP}>
-        Windsurf, JetBrains AI, Continue, etc. all improve when (1) repo-level instruction files say &quot;use{" "}
-        <span className="mono">dagster-component</span> + {registryRoot}&quot;, (2) you paste CLI or schema output into the
-        chat, and (3) you link a component page instead of describing the template in prose.
-      </p>
-
-      <h2 style={{ ...sectionH2, marginTop: 28 }}>Quick commands recap</h2>
+      {/* Section 4 — Quick commands */}
+      <h2 style={{ ...sectionH2, marginTop: promptsOpen ? 28 : 32 }}>Quick commands recap</h2>
+      <p style={{ ...mutedP, marginBottom: 12 }}>{CLI_QUICK_COMMANDS_UVX_PREAMBLE}</p>
       <ul style={{ ...listStyle, marginBottom: 24 }}>
         <li>
           <span className="mono">dagster-component search &lt;query&gt;</span> — find ids by keyword
@@ -438,10 +280,6 @@ Now: help me pick a component for <describe task>.
         <Link to="/examples" style={{ color: "var(--cyan)" }}>
           Examples
         </Link>
-      </p>
-      <p style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 16, lineHeight: 1.45 }}>
-        Copy-paste prompts use <span className="mono">{registryRoot}</span> when you opened this page in the
-        browser—substitute your own host if you self-host the registry.
       </p>
     </div>
   );

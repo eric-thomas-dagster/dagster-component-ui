@@ -75,7 +75,11 @@ export const CLI_YAML_LSP_CALLOUT =
   "The CLI prepends a `# yaml-language-server: $schema=<url>` comment to example.yaml—if you use the YAML language server (VS Code YAML extension, Cursor, Neovim yamlls) you get validation and hover against this template's schema without extra config.";
 
 export const CLI_AI_INIT_CALLOUT =
-  "Run dagster-component init in your repo to drop CLAUDE.md, .cursorrules, and .github/copilot-instructions.md so assistants favor dagster-component search / add instead of inventing components from scratch.";
+  "Run uvx --from dagster-community-components-cli dagster-component init from your project root to drop CLAUDE.md, .cursorrules, and .github/copilot-instructions.md so assistants favor dagster-component search / add instead of inventing components from scratch.";
+
+/** Preamble for pages that list bare `dagster-component <subcommand>` quick reference lines. */
+export const CLI_QUICK_COMMANDS_UVX_PREAMBLE =
+  "These all run as uvx --from dagster-community-components-cli dagster-component <subcommand>, or as plain dagster-component <subcommand> if you've installed the CLI globally (pip install dagster-community-components-cli).";
 
 /** One-liner for component detail and examples. */
 export function cliUvxAddOneLine(componentId: string): string {
