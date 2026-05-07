@@ -67,9 +67,26 @@ function validationLevelPresentation(level: ManifestValidationLevel): {
 export function resolveVerification(c: ManifestComponent): ResolvedVerification {
   const v = c.verification;
   const notes = v?.notes?.trim() || undefined;
+  const checkedAtVerification = v?.checked_at?.trim() || undefined;
 
-  if (v?.status) {
-    const checkedAt = v.checked_at?.trim() || undefined;
+  /** `not_recorded` must not hide a newer `validation` block on the same row. */
+  if (v?.status === "known_issue") {
+    return {
+      status: "known_issue",
+      label: "A known problem is recorded—read notes and avoid for new work until fixed.",
+      shortLabel: "Known issue",
+      tone: "negative",
+      checkedAt: checkedAtVerification,
+      checkedAtKind: checkedAtVerification ? "verification" : undefined,
+      notes,
+    };
+  }
+
+  if (
+    v?.status &&
+    v.status !== "not_recorded"
+  ) {
+    const checkedAt = checkedAtVerification;
     switch (v.status) {
       case "ci_smoke":
         return {
@@ -101,28 +118,8 @@ export function resolveVerification(c: ManifestComponent): ResolvedVerification 
           checkedAtKind: checkedAt ? "verification" : undefined,
           notes,
         };
-      case "known_issue":
-        return {
-          status: "known_issue",
-          label: "A known problem is recorded—read notes and avoid for new work until fixed.",
-          shortLabel: "Known issue",
-          tone: "negative",
-          checkedAt,
-          checkedAtKind: checkedAt ? "verification" : undefined,
-          notes,
-        };
-      case "not_recorded":
       default:
-        return {
-          status: "not_recorded",
-          label:
-            "Verification is explicitly marked as not recorded. Assume untested until you validate it.",
-          shortLabel: "Unverified",
-          tone: "neutral",
-          checkedAt,
-          checkedAtKind: checkedAt ? "verification" : undefined,
-          notes,
-        };
+        break;
     }
   }
 
@@ -145,7 +142,20 @@ export function resolveVerification(c: ManifestComponent): ResolvedVerification 
     };
   }
 
-  const checkedAtLegacy = v?.checked_at?.trim() || undefined;
+  if (v?.status === "not_recorded") {
+    return {
+      status: "not_recorded",
+      label:
+        "Verification is explicitly marked as not recorded. Assume untested until you validate it.",
+      shortLabel: "Unverified",
+      tone: "neutral",
+      checkedAt: checkedAtVerification,
+      checkedAtKind: checkedAtVerification ? "verification" : undefined,
+      notes,
+    };
+  }
+
+  const checkedAtLegacy = checkedAtVerification;
   return {
     status: "not_recorded",
     label:

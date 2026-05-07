@@ -372,15 +372,28 @@ export function ComponentDetail() {
                     </span>
                   )}
                 </div>
-                <h1
+                <div
                   style={{
-                    fontSize: "clamp(1.75rem, 4vw, 2.25rem)",
-                    margin: "0 0 8px",
-                    letterSpacing: "-0.03em",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    gap: 12,
+                    marginBottom: 8,
                   }}
                 >
-                  {displayTitle}
-                </h1>
+                  <h1
+                    style={{
+                      fontSize: "clamp(1.75rem, 4vw, 2.25rem)",
+                      margin: 0,
+                      letterSpacing: "-0.03em",
+                      flex: "1 1 200px",
+                      minWidth: 0,
+                    }}
+                  >
+                    {displayTitle}
+                  </h1>
+                  {manifest ? <VerificationBadge c={manifest} size="md" /> : null}
+                </div>
                 <p className="mono" style={{ fontSize: 14, color: "var(--cyan)", margin: "0 0 12px" }}>
                   {cid}
                 </p>
@@ -854,7 +867,7 @@ export function ComponentDetail() {
             )}
 
             {manifest && trustDetail && (
-              <section style={{ marginBottom: 24 }}>
+              <section id="trust-and-feedback" style={{ marginBottom: 24 }}>
                 <h2 style={sectionTitleFriendly}>Trust & feedback</h2>
                 <div
                   style={{
