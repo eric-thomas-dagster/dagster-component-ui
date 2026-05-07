@@ -1,21 +1,34 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { Search } from "lucide-react";
 import { ExamplesMarkdown } from "../components/ExamplesMarkdown";
 import {
   COMMUNITY_CLI_EXAMPLES_INDEX_README_URL,
   COMMUNITY_CLI_EXAMPLES_TREE_WEB,
 } from "../data/examplesCatalog";
 import { useCatalog } from "../context/CatalogContext";
+import { filterExamplesReadmeByQuery } from "../lib/examplesSearch";
 import { linkifyCatalogMarkdown } from "../lib/linkifyCatalogMarkdown";
 import {
-  fetchExamplesIndexReadme,
+  fetchExamplesIndexReadmeCached,
   rewriteExamplesIndexLinks,
 } from "../lib/loadCommunityExamples";
 
 export function ExamplesIndex() {
   const { components } = useCatalog();
+  const [params, setParams] = useSearchParams();
+  const qParam = params.get("q") ?? "";
   const [readme, setReadme] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const setQParam = (next: string) => {
+    const p = new URLSearchParams(params);
+    const t = next.trim();
+    if (t) p.set("q", t);
+    else p.delete("q");
+    setParams(p, { replace: true });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -23,7 +36,7 @@ export function ExamplesIndex() {
     setError(null);
     (async () => {
       try {
-        const raw = await fetchExamplesIndexReadme();
+        const raw = await fetchExamplesIndexReadmeCached();
         const linked = rewriteExamplesIndexLinks(raw);
         if (!cancelled) setReadme(linked);
       } catch (e) {
@@ -42,6 +55,13 @@ export function ExamplesIndex() {
     return linkifyCatalogMarkdown(readme, components);
   }, [readme, components]);
 
+  const displayReadme = useMemo(() => {
+    if (!linkedReadme) return null;
+    const t = qParam.trim();
+    if (!t) return linkedReadme;
+    return filterExamplesReadmeByQuery(linkedReadme, t);
+  }, [linkedReadme, qParam]);
+
   return (
     <div style={{ maxWidth: 920, margin: "0 auto", padding: "32px 24px 64px" }}>
       <p
@@ -57,13 +77,70 @@ export function ExamplesIndex() {
         Examples
       </p>
 
-      <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "0 0 24px", lineHeight: 1.5 }}>
+      <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "0 0 16px", lineHeight: 1.5 }}>
         This page mirrors the demos folder README from the CLI repo—it updates whenever that file changes (no duplicated
         list in this codebase). Browse the folder on GitHub:{" "}
         <a href={COMMUNITY_CLI_EXAMPLES_TREE_WEB} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
           examples/
         </a>
       </p>
+
+      {!loading && !error && linkedReadme != null && (
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          style={{ marginBottom: 20, display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              flex: "1 1 220px",
+              minWidth: 0,
+              padding: "10px 14px",
+              borderRadius: 10,
+              border: "1px solid var(--border)",
+              background: "var(--bg-card)",
+            }}
+          >
+            <Search size={18} strokeWidth={2} style={{ color: "var(--text-dim)", flexShrink: 0 }} aria-hidden />
+            <input
+              type="search"
+              value={qParam}
+              onChange={(e) => setQParam(e.target.value)}
+              placeholder="Filter sections (matches all words)…"
+              aria-label="Filter examples README"
+              style={{
+                flex: 1,
+                minWidth: 0,
+                border: "none",
+                background: "transparent",
+                color: "var(--text)",
+                fontSize: 14,
+                outline: "none",
+              }}
+            />
+          </div>
+          {qParam.trim() ? (
+            <button
+              type="button"
+              onClick={() => setQParam("")}
+              style={{
+                padding: "10px 14px",
+                borderRadius: 10,
+                border: "1px solid var(--border)",
+                background: "var(--bg-elevated)",
+                color: "var(--text-muted)",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Clear
+            </button>
+          ) : null}
+        </form>
+      )}
 
       {loading && <p style={{ color: "var(--text-muted)" }}>Loading examples index…</p>}
       {error && (
@@ -77,7 +154,32 @@ export function ExamplesIndex() {
           </p>
         </div>
       )}
-      {readme != null && linkedReadme != null && <ExamplesMarkdown>{linkedReadme}</ExamplesMarkdown>}
+      {readme != null && displayReadme != null && displayReadme !== "" && (
+        <ExamplesMarkdown>{displayReadme}</ExamplesMarkdown>
+      )}
+      {readme != null && linkedReadme != null && qParam.trim() && displayReadme === "" ? (
+        <div className="callout-help" style={{ marginTop: 8 }}>
+          <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)" }}>
+            No README sections contain all of those words. Try fewer keywords or{" "}
+            <button
+              type="button"
+              onClick={() => setQParam("")}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                color: "var(--cyan)",
+                fontWeight: 600,
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >
+              clear the filter
+            </button>
+            .
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

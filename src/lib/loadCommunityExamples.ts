@@ -21,6 +21,16 @@ export async function fetchExamplesIndexReadme(): Promise<string> {
   return res.text();
 }
 
+let examplesIndexReadmeCache: string | null = null;
+
+/** Reuse one fetch for the examples index (palette + examples page). */
+export async function fetchExamplesIndexReadmeCached(): Promise<string> {
+  if (examplesIndexReadmeCache) return examplesIndexReadmeCache;
+  const t = await fetchExamplesIndexReadme();
+  examplesIndexReadmeCache = t;
+  return t;
+}
+
 /**
  * Prefer `examples/<slug>/README.md` (folder layout), fall back to `examples/<slug>.md` (flat layout).
  */
