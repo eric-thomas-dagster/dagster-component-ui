@@ -904,7 +904,8 @@ export function ComponentDetail() {
                   </p>
                   {trustDetail.checkedAt && (
                     <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "0 0 8px" }}>
-                      Last checked: {formatIsoDate(trustDetail.checkedAt)}
+                      {trustDetail.checkedAtKind === "validation" ? "Last validated" : "Last checked"}:{" "}
+                      {formatIsoDate(trustDetail.checkedAt)}
                     </p>
                   )}
                   {trustDetail.notes && (

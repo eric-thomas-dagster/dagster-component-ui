@@ -399,7 +399,7 @@ export function Home() {
               : "—"
           }
           label="Trust signals"
-          hint="CI, manual, or community OK (manifest)"
+          hint="CI, manual, community OK, or validation tier (manifest)"
         />
         <StatBox
           value={trustBreakdown.knownIssues > 0 ? String(trustBreakdown.knownIssues) : "0"}
@@ -462,8 +462,9 @@ export function Home() {
 
       <div style={{ maxWidth: 720, margin: "0 auto 32px", padding: "0 24px" }} className="callout-help">
         <strong style={{ color: "var(--text)" }}>Before you ship:</strong> most listings are community templates
-        without an independent test guarantee. Component pages show verification when the manifest records CI, manual
-        checks, or community signals—otherwise treat as unverified. There is no in-app review yet; use{" "}
+        without an independent test guarantee. Component pages show trust signals when the manifest records CI, manual
+        checks, community feedback, or a validation tier (code / infra / live) with optional evidence—otherwise treat
+        as unverified. There is no in-app review yet; use{" "}
         <strong style={{ color: "var(--text)" }}>Report issue</strong> on a template to reach maintainers on GitHub.
       </div>
 

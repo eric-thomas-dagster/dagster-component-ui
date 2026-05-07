@@ -2,20 +2,38 @@ export interface ManifestDeps {
   pip?: string[];
 }
 
-/** Set in manifest when the templates repo or CI records trust signals (optional). */
-export type VerificationStatus =
+/** Values allowed in manifest `verification.status`. */
+export type ManifestVerificationStatus =
   | "not_recorded"
   | "ci_smoke"
   | "manual_spot_check"
   | "community_reported_working"
   | "known_issue";
 
+/** Resolved trust status for UI (includes synthetic statuses from `validation.level`). */
+export type VerificationStatus =
+  | ManifestVerificationStatus
+  | "validated_code"
+  | "validated_infra"
+  | "validated_live";
+
 export interface ManifestVerification {
-  status?: VerificationStatus;
+  status?: ManifestVerificationStatus;
   /** ISO-8601 date of last check or report */
   checked_at?: string;
   /** Maintainer or CI notes */
   notes?: string;
+}
+
+/** New-style manifest validation block (parallel to optional `verification`). */
+export type ManifestValidationLevel = "code" | "infra" | "live";
+
+export interface ManifestValidation {
+  level: ManifestValidationLevel;
+  /** ISO date or datetime of last validation */
+  last_validated?: string;
+  /** Alias some generators may emit */
+  last_validated_at?: string;
 }
 
 /** Optional aggregated feedback (manual, synced, or future API). */
@@ -42,6 +60,8 @@ export interface ManifestComponent {
   requirements_url?: string;
   icon?: string;
   verification?: ManifestVerification;
+  /** Catalog validation tier + evidence (preferred when `verification.status` is absent). */
+  validation?: ManifestValidation;
   community_signals?: ManifestCommunitySignals;
 }
 
