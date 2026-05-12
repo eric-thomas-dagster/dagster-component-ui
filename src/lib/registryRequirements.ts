@@ -21,6 +21,14 @@ export const COMMUNITY_CLI_PYPI_PACKAGE = "dagster-community-components-cli";
 export const UV_INSTALL_SHELL = "curl -LsSf https://astral.sh/uv/install.sh | sh";
 export const UV_INSTALL_DOCS = "https://docs.astral.sh/uv/getting-started/installation/";
 
+/** In-app copy: setup scripts and snippets often call uvx, which is not installed via pip or Dagster alone. */
+export const UVX_REQUIRES_UV_EXPLAINER =
+  "uvx ships with uv (Astral). Install uv first if a command or demo script uses uvx—otherwise you will see “uvx: command not found”.";
+
+/** Follow-up: avoid uv entirely by installing the CLI from PyPI. */
+export const UVX_ALTERNATIVE_PIP_CLI =
+  "Or skip uv: pip install dagster-community-components-cli, then run dagster-component … instead of uvx.";
+
 export const COMMUNITY_INSTALLER_TEMPLATE_TREE =
   "https://github.com/eric-thomas-dagster/dagster-component-templates/tree/main/assets/infrastructure/community_component_installer";
 
@@ -37,7 +45,7 @@ export const CLI_HOME_PLACEHOLDER_COMPONENT_ID = "your_component_id";
 /** Single copy block: uvx one-liner + pip install + add (PyPI). */
 export function canonicalInstallSnippet(componentIdPlaceholder: string): string {
   return [
-    "# Zero-install (recommended) — runs the CLI on demand:",
+    "# Zero-install (recommended) — needs uv on PATH so uvx exists:",
     `uvx --from ${COMMUNITY_CLI_PYPI_PACKAGE} dagster-component add ${componentIdPlaceholder}`,
     "",
     "# Or install the CLI permanently:",

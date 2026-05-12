@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import type { ManifestComponent } from "../types";
 import { useCatalog } from "../context/CatalogContext";
 import { ComponentCard } from "../components/ComponentCard";
@@ -9,6 +9,7 @@ import { categoryLabel, formatDate } from "../lib/format";
 import { countDistinctBrandIntegrations, newestComponents } from "../lib/catalogStats";
 import { countVerificationBreakdown } from "../lib/verification";
 import { PopularCategoryCard } from "../components/PopularCategoryCard";
+import { REGISTRY_DAGSTER_SPEC, UV_INSTALL_DOCS } from "../lib/registryRequirements";
 
 const PAGE_SIZE = 48;
 
@@ -281,11 +282,21 @@ export function Home() {
           metadata. Templates live in GitHub; you copy them into your project (they are not published as PyPI
           packages per template).
         </p>
-        <p style={{ fontSize: 15, color: "var(--text-dim)", maxWidth: 720, margin: "0 0 20px" }}>
+        <p style={{ fontSize: 15, color: "var(--text-dim)", maxWidth: 720, margin: "0 0 10px" }}>
           <strong style={{ color: "var(--text)" }}>{catalogTotal || "—"}</strong> templates ·{" "}
           <strong style={{ color: "var(--text)" }}>{catCount || "—"}</strong> categories ·{" "}
           <strong style={{ color: "var(--text)" }}>{integrationBrands || "—"}</strong> branded integrations (
           <span className="mono">si:*</span> icons)
+        </p>
+        <p style={{ fontSize: 13, color: "var(--text-dim)", maxWidth: 720, margin: "0 0 20px", lineHeight: 1.55 }}>
+          <Link to="/get-started" style={{ color: "var(--cyan)", fontWeight: 600, textDecoration: "none" }}>
+            Get started
+          </Link>{" "}
+          covers <span className="mono">uvx</span> (install{" "}
+          <a href={UV_INSTALL_DOCS} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
+            uv
+          </a>{" "}
+          first) and <span className="mono">dagster{REGISTRY_DAGSTER_SPEC}</span> for your code location.
         </p>
 
         <div

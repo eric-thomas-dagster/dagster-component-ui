@@ -9,6 +9,8 @@ import {
   CLI_QUICK_REFERENCE_LINES,
   COMMUNITY_CLI_README_WEB,
   COMMUNITY_CLI_VALUE_PROP,
+  UVX_ALTERNATIVE_PIP_CLI,
+  UVX_REQUIRES_UV_EXPLAINER,
   UV_INSTALL_DOCS,
   UV_INSTALL_SHELL,
 } from "../lib/registryRequirements";
@@ -46,10 +48,11 @@ export function GetStartedPage() {
       </h1>
       <p style={{ fontSize: 15, color: "var(--text-muted)", margin: "0 0 12px", lineHeight: 1.65 }}>
         Install <span className="mono">dagster-community-components-cli</span> from PyPI (or run via{" "}
-        <span className="mono">uvx</span> without installing). From your Dagster code-location root,{" "}
-        <span className="mono">dagster-component add</span> copies a template and installs its declared pip dependencies.
-        You still need <span className="mono">dagster</span> in the environment for your project. On each template page
-        in this registry, the copy button uses that template&apos;s id instead of{" "}
+        <span className="mono">uvx</span> without pip-installing the CLI, but <strong>uvx requires uv</strong>; see
+        prerequisites below). From your Dagster code-location root, <span className="mono">dagster-component add</span>{" "}
+        copies a template and installs its declared pip dependencies. You still need{" "}
+        <span className="mono">dagster</span> in the environment for your project. On each template page in this registry,
+        the copy button uses that template&apos;s id instead of{" "}
         <code className="mono" style={{ fontSize: 13 }}>{CLI_HOME_PLACEHOLDER_COMPONENT_ID}</code>.
       </p>
       <p style={{ fontSize: 15, color: "var(--text-muted)", margin: "0 0 20px", lineHeight: 1.65 }}>
@@ -68,6 +71,68 @@ export function GetStartedPage() {
           AI assistants
         </Link>{" "}
         page for details.
+      </p>
+
+      <h2
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          letterSpacing: "0.04em",
+          color: "var(--text-dim)",
+          margin: "0 0 10px",
+        }}
+      >
+        Prerequisites
+      </h2>
+      <div
+        className="callout-help"
+        style={{ marginBottom: 16, borderLeftColor: "var(--cyan)", fontSize: 14, lineHeight: 1.6, color: "var(--text-muted)" }}
+      >
+        <p style={{ margin: "0 0 10px" }}>
+          <strong style={{ color: "var(--text)" }}>uv</strong> — {UVX_REQUIRES_UV_EXPLAINER} {UVX_ALTERNATIVE_PIP_CLI}
+        </p>
+        <p style={{ margin: 0, fontSize: 13, color: "var(--text-dim)" }}>
+          Quick install (macOS / Linux):{" "}
+          <code className="mono" style={{ fontSize: 11 }}>{UV_INSTALL_SHELL}</code>
+          {" · "}
+          <a href={UV_INSTALL_DOCS} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
+            uv installation (all platforms)
+          </a>
+        </p>
+      </div>
+
+      <h2
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          letterSpacing: "0.04em",
+          color: "var(--text-dim)",
+          margin: "0 0 8px",
+        }}
+      >
+        Prerequisite — Dagster runtime
+      </h2>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          gap: 12,
+          padding: "14px 16px",
+          borderRadius: 12,
+          border: "1px solid var(--border)",
+          background: "var(--bg-card)",
+          width: "100%",
+          marginBottom: 22,
+        }}
+      >
+        <code className="mono" style={{ fontSize: 13, color: "var(--text-muted)", flex: "1 1 200px" }}>
+          {pipInstallDagsterCore()}
+        </code>
+        <CopyButton text={pipInstallDagsterCore()} label="Copy" />
+      </div>
+      <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "0 0 22px", lineHeight: 1.55 }}>
+        {INSTALL_PYPI_NOTE} {INSTALL_VERSION_NOTE}
       </p>
 
       <div
@@ -140,47 +205,6 @@ export function GetStartedPage() {
           ))}
         </ul>
       </div>
-
-      <h2
-        style={{
-          fontSize: 12,
-          fontWeight: 600,
-          letterSpacing: "0.04em",
-          color: "var(--text-dim)",
-          margin: "0 0 8px",
-        }}
-      >
-        Prerequisite — Dagster runtime
-      </h2>
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          gap: 12,
-          padding: "14px 16px",
-          borderRadius: 12,
-          border: "1px solid var(--border)",
-          background: "var(--bg-card)",
-          width: "100%",
-        }}
-      >
-        <code className="mono" style={{ fontSize: 13, color: "var(--text-muted)", flex: "1 1 200px" }}>
-          {pipInstallDagsterCore()}
-        </code>
-        <CopyButton text={pipInstallDagsterCore()} label="Copy" />
-      </div>
-      <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "12px 0 0", lineHeight: 1.55 }}>
-        Don&apos;t have <span className="mono">uv</span> for uvx?{" "}
-        <code className="mono" style={{ fontSize: 11 }}>{UV_INSTALL_SHELL}</code> (macOS / Linux) or{" "}
-        <a href={UV_INSTALL_DOCS} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
-          uv installation
-        </a>
-        .
-      </p>
-      <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "10px 0 0", lineHeight: 1.55 }}>
-        {INSTALL_PYPI_NOTE} {INSTALL_VERSION_NOTE}
-      </p>
     </div>
   );
 }

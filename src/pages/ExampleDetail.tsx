@@ -3,6 +3,10 @@ import { Link, useParams } from "react-router-dom";
 import { ExamplesMarkdown } from "../components/ExamplesMarkdown";
 import { CopyButton } from "../components/CopyButton";
 import { exampleSetupScriptCurl } from "../data/examplesCatalog";
+import {
+  UVX_ALTERNATIVE_PIP_CLI,
+  UV_INSTALL_DOCS,
+} from "../lib/registryRequirements";
 import { useCatalog } from "../context/CatalogContext";
 import {
   fetchExampleMarkdown,
@@ -120,7 +124,15 @@ export function ExampleDetail() {
         </div>
         <p style={{ fontSize: 12, color: "var(--text-dim)", margin: "12px 0 0", lineHeight: 1.45 }}>
           Runs <span className="mono">setup_{slug}_demo.sh</span> from the CLI repo when present—review before piping to
-          bash like any setup script.
+          bash like any setup script. Scripts usually call <span className="mono">uvx</span>;{" "}
+          <a href={UV_INSTALL_DOCS} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
+            install uv
+          </a>{" "}
+          first (uvx is not installed by pip or Dagster alone). {UVX_ALTERNATIVE_PIP_CLI}{" "}
+          <Link to="/get-started" style={{ color: "var(--cyan)" }}>
+            Get started
+          </Link>
+          .
         </p>
       </div>
 

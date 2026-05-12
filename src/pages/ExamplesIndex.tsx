@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { ExamplesMarkdown } from "../components/ExamplesMarkdown";
 import {
   COMMUNITY_CLI_EXAMPLES_INDEX_README_URL,
   COMMUNITY_CLI_EXAMPLES_TREE_WEB,
 } from "../data/examplesCatalog";
+import { UVX_REQUIRES_UV_EXPLAINER } from "../lib/registryRequirements";
 import { useCatalog } from "../context/CatalogContext";
 import { filterExamplesReadmeByQuery } from "../lib/examplesSearch";
 import { linkifyCatalogMarkdown } from "../lib/linkifyCatalogMarkdown";
@@ -83,6 +84,11 @@ export function ExamplesIndex() {
         <a href={COMMUNITY_CLI_EXAMPLES_TREE_WEB} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
           examples/
         </a>
+        . Demo setup scripts often use <span className="mono">uvx</span>; {UVX_REQUIRES_UV_EXPLAINER}{" "}
+        <Link to="/get-started" style={{ color: "var(--cyan)" }}>
+          Get started
+        </Link>{" "}
+        has install steps and a pip-only path.
       </p>
 
       {!loading && !error && linkedReadme != null && (
