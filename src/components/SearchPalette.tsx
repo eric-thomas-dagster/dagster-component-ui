@@ -8,7 +8,7 @@ import { matchesQuery, sortByRelevance } from "../lib/search";
 import { categoryLabel } from "../lib/format";
 import { ComponentIcon } from "./ComponentIcon";
 import { fetchExamplesIndexReadmeCached } from "../lib/loadCommunityExamples";
-import { TRUST_FILTER_CHIPS } from "../lib/verification";
+import { TRUST_FILTER_CHIPS, componentMatchesTrustUrlFilter, trustFilterHeading, type TrustUrlFilter } from "../lib/verification";
 import {
   examplesReadmeBodyMatches,
   findExampleLinkHits,
@@ -36,6 +36,7 @@ export function SearchPalette({
   const nav = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const [highlight, setHighlight] = useState(0);
+  const [trustFilter, setTrustFilter] = useState<TrustUrlFilter>("");
   const [examplesReadme, setExamplesReadme] = useState<string | null>(null);
   const [examplesLoadState, setExamplesLoadState] = useState<"idle" | "loading" | "ok" | "err">("idle");
 
@@ -68,15 +69,17 @@ export function SearchPalette({
   useEffect(() => {
     if (open) {
       setQ("");
+      setTrustFilter("");
       setHighlight(0);
       setTimeout(() => inputRef.current?.focus(), 10);
     }
   }, [open]);
 
   const filteredComponents = useMemo(() => {
-    const list = components.filter((c) => matchesQuery(c, q));
+    let list = components.filter((c) => matchesQuery(c, q));
+    list = list.filter((c) => componentMatchesTrustUrlFilter(c, trustFilter));
     return sortByRelevance(list, q).slice(0, MAX_COMPONENT_RESULTS);
-  }, [components, q]);
+  }, [components, q, trustFilter]);
 
   const exampleLinkHits = useMemo(() => {
     if (!examplesReadme || !q.trim()) return [];
@@ -101,7 +104,7 @@ export function SearchPalette({
 
   useEffect(() => {
     setHighlight(0);
-  }, [q]);
+  }, [q, trustFilter]);
 
   useEffect(() => {
     if (!open) return;
@@ -141,9 +144,10 @@ export function SearchPalette({
   if (!open) return null;
 
   const qTrim = q.trim();
+  const hasActiveFilter = Boolean(qTrim) || Boolean(trustFilter);
   const examplesStillLoading = examplesLoadState === "loading" && Boolean(qTrim);
   const empty =
-    rows.length === 0 && components.length > 0 && Boolean(qTrim) && !examplesStillLoading;
+    rows.length === 0 && components.length > 0 && hasActiveFilter && !examplesStillLoading;
 
   return (
     <div
@@ -238,31 +242,55 @@ export function SearchPalette({
               marginBottom: 2,
             }}
           >
-            Filter catalog by trust
+            Filter catalog in this dialog (click again to clear).
           </span>
-          {TRUST_FILTER_CHIPS.map(({ trust, label, hint }) => (
-            <button
-              key={trust}
-              type="button"
-              title={hint}
-              onClick={() => {
-                nav(`/?trust=${encodeURIComponent(trust)}`);
-                onClose();
-              }}
-              style={{
-                padding: "5px 10px",
-                borderRadius: 999,
-                border: "1px solid var(--border)",
-                background: "var(--bg-card)",
-                color: "var(--text-muted)",
-                fontSize: 12,
-                fontWeight: 500,
-                cursor: "pointer",
-              }}
-            >
-              {label}
-            </button>
-          ))}
+          {TRUST_FILTER_CHIPS.map(({ trust, label, hint }) => {
+            const active = trustFilter === trust;
+            return (
+              <button
+                key={trust}
+                type="button"
+                title={hint}
+                aria-pressed={active}
+                onClick={() => setTrustFilter(active ? "" : trust)}
+                style={{
+                  padding: "5px 10px",
+                  borderRadius: 999,
+                  border: `1px solid ${active ? "var(--accent-bright)" : "var(--border)"}`,
+                  background: active ? "rgba(124, 58, 237, 0.22)" : "var(--bg-card)",
+                  color: active ? "var(--text)" : "var(--text-muted)",
+                  fontSize: 12,
+                  fontWeight: 500,
+                  cursor: "pointer",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+          {trustFilter ? (
+            <div style={{ flexBasis: "100%", display: "flex", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  nav(`/?trust=${encodeURIComponent(trustFilter)}`);
+                  onClose();
+                }}
+                style={{
+                  padding: "5px 10px",
+                  borderRadius: 8,
+                  border: "1px solid var(--border)",
+                  background: "transparent",
+                  color: "var(--cyan)",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Open on home
+              </button>
+            </div>
+          ) : null}
         </div>
         <ul
           style={{
@@ -273,7 +301,7 @@ export function SearchPalette({
             overflowY: "auto",
           }}
         >
-          {components.length === 0 && !qTrim ? (
+          {components.length === 0 && !hasActiveFilter ? (
             <li style={{ padding: "20px 14px", color: "var(--text-muted)", fontSize: 14 }}>Loading catalog…</li>
           ) : examplesStillLoading && rows.length === 0 ? (
             <li style={{ padding: "20px 14px", color: "var(--text-muted)", fontSize: 14 }}>
@@ -281,31 +309,54 @@ export function SearchPalette({
             </li>
           ) : empty ? (
             <li style={{ padding: "20px 14px", color: "var(--text-muted)", fontSize: 14, lineHeight: 1.5 }}>
-              No templates or examples match <span className="mono">{qTrim}</span>. Try a shorter keyword or browse{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  nav(`/examples?q=${encodeURIComponent(qTrim)}`);
-                  onClose();
-                }}
-                style={{
-                  background: "none",
-                  border: "none",
-                  padding: 0,
-                  color: "var(--cyan)",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  textDecoration: "underline",
-                }}
-              >
-                Examples
-              </button>{" "}
-              on the full page.
+              {qTrim ? (
+                <>
+                  No templates or examples match <span className="mono">{qTrim}</span>
+                  {trustFilter ? (
+                    <>
+                      {" "}
+                      with trust filter <strong style={{ color: "var(--text)" }}>{trustFilterHeading(trustFilter)}</strong>
+                    </>
+                  ) : null}
+                  .
+                </>
+              ) : trustFilter ? (
+                <>
+                  No templates match trust filter{" "}
+                  <strong style={{ color: "var(--text)" }}>{trustFilterHeading(trustFilter)}</strong>.
+                </>
+              ) : (
+                <>No results.</>
+              )}{" "}
+              Try different keywords or trust chips.
+              {qTrim ? (
+                <>
+                  {" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      nav(`/examples?q=${encodeURIComponent(qTrim)}`);
+                      onClose();
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      color: "var(--cyan)",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Search examples on the full page
+                  </button>
+                </>
+              ) : null}
             </li>
-          ) : !qTrim ? (
+          ) : !hasActiveFilter ? (
             <li style={{ padding: "20px 14px", color: "var(--text-muted)", fontSize: 14, lineHeight: 1.5 }}>
-              Start typing to search the component catalog and CLI examples, or use the trust filters above to open the
-              home page with a catalog filter.
+              Start typing to search the component catalog and CLI examples, or pick a trust chip to narrow templates
+              here.
             </li>
           ) : (
             rows.map((row, i) => {
