@@ -205,3 +205,66 @@ export function communityHelpfulCount(c: ManifestComponent): number {
   if (typeof n !== "number" || n < 0) return 0;
   return Math.floor(n);
 }
+
+/** URL `?trust=` values; empty means no filter. */
+export type TrustUrlFilter = "" | "live" | "infra" | "code" | "validated" | "verified" | "issue";
+
+export function normalizeTrustFilterParam(raw: string | null | undefined): TrustUrlFilter {
+  const v = (raw ?? "").trim().toLowerCase();
+  if (v === "live" || v === "infra" || v === "code" || v === "validated" || v === "verified" || v === "issue") {
+    return v;
+  }
+  return "";
+}
+
+export function componentMatchesTrustUrlFilter(c: ManifestComponent, filter: TrustUrlFilter): boolean {
+  if (!filter) return true;
+  const { status } = resolveVerification(c);
+  switch (filter) {
+    case "live":
+      return status === "validated_live";
+    case "infra":
+      return status === "validated_infra";
+    case "code":
+      return status === "validated_code";
+    case "validated":
+      return (
+        status === "validated_live" || status === "validated_infra" || status === "validated_code"
+      );
+    case "verified":
+      return status !== "not_recorded" && status !== "known_issue";
+    case "issue":
+      return status === "known_issue";
+    default:
+      return true;
+  }
+}
+
+export function trustFilterHeading(filter: TrustUrlFilter): string {
+  switch (filter) {
+    case "live":
+      return "Live OK";
+    case "infra":
+      return "Infra OK";
+    case "code":
+      return "Code OK";
+    case "validated":
+      return "Validated (code / infra / live)";
+    case "verified":
+      return "With trust signal";
+    case "issue":
+      return "Known issue";
+    default:
+      return "";
+  }
+}
+
+/** Home hero + search palette: filter catalog by resolved verification / validation tier. */
+export const TRUST_FILTER_CHIPS: { trust: Exclude<TrustUrlFilter, "">; label: string; hint: string }[] = [
+  { trust: "live", label: "Live OK", hint: "validation.level live" },
+  { trust: "infra", label: "Infra OK", hint: "validation.level infra" },
+  { trust: "code", label: "Code OK", hint: "validation.level code" },
+  { trust: "validated", label: "Any validated", hint: "Code, Infra, or Live OK" },
+  { trust: "verified", label: "Any verified", hint: "CI, manual, community, or validated tier" },
+  { trust: "issue", label: "Known issues", hint: "Manifest known_issue" },
+];

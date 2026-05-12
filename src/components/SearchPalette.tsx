@@ -8,6 +8,7 @@ import { matchesQuery, sortByRelevance } from "../lib/search";
 import { categoryLabel } from "../lib/format";
 import { ComponentIcon } from "./ComponentIcon";
 import { fetchExamplesIndexReadmeCached } from "../lib/loadCommunityExamples";
+import { TRUST_FILTER_CHIPS } from "../lib/verification";
 import {
   examplesReadmeBodyMatches,
   findExampleLinkHits,
@@ -216,6 +217,53 @@ export function SearchPalette({
             </span>
           </div>
         </div>
+        <div
+          style={{
+            padding: "10px 16px 12px",
+            borderBottom: "1px solid var(--border)",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            alignItems: "center",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: "var(--text-dim)",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              width: "100%",
+              marginBottom: 2,
+            }}
+          >
+            Filter catalog by trust
+          </span>
+          {TRUST_FILTER_CHIPS.map(({ trust, label, hint }) => (
+            <button
+              key={trust}
+              type="button"
+              title={hint}
+              onClick={() => {
+                nav(`/?trust=${encodeURIComponent(trust)}`);
+                onClose();
+              }}
+              style={{
+                padding: "5px 10px",
+                borderRadius: 999,
+                border: "1px solid var(--border)",
+                background: "var(--bg-card)",
+                color: "var(--text-muted)",
+                fontSize: 12,
+                fontWeight: 500,
+                cursor: "pointer",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <ul
           style={{
             listStyle: "none",
@@ -256,7 +304,8 @@ export function SearchPalette({
             </li>
           ) : !qTrim ? (
             <li style={{ padding: "20px 14px", color: "var(--text-muted)", fontSize: 14, lineHeight: 1.5 }}>
-              Start typing to search the component catalog and CLI examples.
+              Start typing to search the component catalog and CLI examples, or use the trust filters above to open the
+              home page with a catalog filter.
             </li>
           ) : (
             rows.map((row, i) => {

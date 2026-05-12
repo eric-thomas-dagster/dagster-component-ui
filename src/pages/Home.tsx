@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import type { ManifestComponent } from "../types";
 import { useCatalog } from "../context/CatalogContext";
@@ -7,7 +7,7 @@ import { componentId } from "../lib/componentId";
 import { matchesQuery, sortByRelevance } from "../lib/search";
 import { categoryLabel, formatDate } from "../lib/format";
 import { countDistinctBrandIntegrations, newestComponents } from "../lib/catalogStats";
-import { countVerificationBreakdown } from "../lib/verification";
+import { countVerificationBreakdown, componentMatchesTrustUrlFilter, normalizeTrustFilterParam, trustFilterHeading, TRUST_FILTER_CHIPS, type TrustUrlFilter } from "../lib/verification";
 import { PopularCategoryCard } from "../components/PopularCategoryCard";
 import { REGISTRY_DAGSTER_SPEC, UV_INSTALL_DOCS } from "../lib/registryRequirements";
 
@@ -94,9 +94,10 @@ export function Home() {
   const qParam = params.get("q") ?? "";
   const catParam = params.get("category") ?? "";
   const browseAll = params.get("browse") === "all";
+  const trustParam = normalizeTrustFilterParam(params.get("trust"));
 
-  /** Discovery-first home: full catalog only after search / filter / browse-all. */
-  const explorationActive = Boolean(qParam || catParam || browseAll);
+  /** Discovery-first home: full catalog only after search / filter / browse-all / trust filter. */
+  const explorationActive = Boolean(qParam || catParam || browseAll || trustParam);
 
   const {
     components,
@@ -171,15 +172,16 @@ export function Home() {
   const filtered = useMemo(() => {
     let list = components;
     if (catParam) list = list.filter((c) => c.category === catParam);
+    list = list.filter((c) => componentMatchesTrustUrlFilter(c, trustParam));
     list = list.filter((c) => matchesQuery(c, qParam));
     return sortByRelevance(list, qParam);
-  }, [components, catParam, qParam]);
+  }, [components, catParam, qParam, trustParam]);
 
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [qParam, catParam, browseAll]);
+  }, [qParam, catParam, browseAll, trustParam]);
 
   const visiblePage = useMemo(
     () => filtered.slice(0, visibleCount),
@@ -215,6 +217,7 @@ export function Home() {
     next.set("browse", "all");
     next.delete("category");
     next.delete("q");
+    next.delete("trust");
     setLocalQ("");
     setParams(next);
   }, [params, setParams]);
@@ -224,7 +227,18 @@ export function Home() {
       const next = new URLSearchParams(params);
       next.set("q", term);
       next.delete("browse");
+      next.delete("trust");
       setLocalQ(term);
+      setParams(next);
+    },
+    [params, setParams]
+  );
+
+  const setTrustFilter = useCallback(
+    (nextTrust: TrustUrlFilter) => {
+      const next = new URLSearchParams(params);
+      if (!nextTrust) next.delete("trust");
+      else next.set("trust", nextTrust);
       setParams(next);
     },
     [params, setParams]
@@ -332,6 +346,38 @@ export function Home() {
           ))}
         </div>
 
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 20,
+            maxWidth: 960,
+          }}
+        >
+          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-dim)", marginRight: 4 }}>Trust:</span>
+          {TRUST_FILTER_CHIPS.map(({ trust, label, hint }) => (
+            <button
+              key={trust}
+              type="button"
+              title={hint}
+              onClick={() => setTrustFilter(trustParam === trust ? "" : trust)}
+              style={{
+                padding: "6px 12px",
+                borderRadius: 999,
+                border: `1px solid ${trustParam === trust ? "var(--accent-bright)" : "var(--border)"}`,
+                background: trustParam === trust ? "rgba(124, 58, 237, 0.22)" : "var(--bg-card)",
+                color: trustParam === trust ? "var(--text)" : "var(--text-muted)",
+                fontSize: 13,
+                fontWeight: 500,
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <form onSubmit={onSearchSubmit} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <div className="hero-search-field">
             <span style={{ color: "var(--text-dim)", fontSize: 18 }} aria-hidden>
@@ -411,11 +457,15 @@ export function Home() {
           }
           label="Trust signals"
           hint="CI, manual, community OK, or validation tier (manifest)"
+          onClick={() => setTrustFilter(trustParam === "verified" ? "" : "verified")}
+          pressed={trustParam === "verified"}
         />
         <StatBox
           value={trustBreakdown.knownIssues > 0 ? String(trustBreakdown.knownIssues) : "0"}
           label="Known issues"
           hint="Flagged in manifest"
+          onClick={() => setTrustFilter(trustParam === "issue" ? "" : "issue")}
+          pressed={trustParam === "issue"}
         />
         <StatBox
           value={manifestMeta ? formatDate(manifestMeta.last_updated) : "—"}
@@ -668,13 +718,7 @@ export function Home() {
         <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 64px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
             <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em" }}>
-              {browseAll && !catParam && !qParam
-                ? "All components"
-                : catParam
-                  ? categoryLabel(catParam)
-                  : qParam
-                    ? `Search results`
-                    : "Components"}
+              {explorationSectionTitle(browseAll, catParam, qParam, trustParam)}
               <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 16 }}>
                 {" "}
                 ({filtered.length}
@@ -699,9 +743,43 @@ export function Home() {
               Back to discovery
             </button>
           </div>
-          {qParam && (
-            <p style={{ color: "var(--text-muted)", fontSize: 14, marginTop: -8, marginBottom: 16 }}>
-              Matching <span className="mono">{qParam}</span>
+          {(qParam || trustParam) && (
+            <p
+              style={{
+                color: "var(--text-muted)",
+                fontSize: 14,
+                marginTop: -8,
+                marginBottom: 16,
+                lineHeight: 1.5,
+              }}
+            >
+              {qParam ? (
+                <>
+                  Matching <span className="mono">{qParam}</span>
+                </>
+              ) : null}
+              {qParam && trustParam ? " · " : null}
+              {trustParam ? (
+                <>
+                  Trust: <strong style={{ color: "var(--text)" }}>{trustFilterHeading(trustParam)}</strong>
+                  {" — "}
+                  <button
+                    type="button"
+                    onClick={() => setTrustFilter("")}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      color: "var(--cyan)",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Clear trust filter
+                  </button>
+                </>
+              ) : null}
             </p>
           )}
           {!total ? (
@@ -746,27 +824,72 @@ export function Home() {
   );
 }
 
+function explorationSectionTitle(
+  browseAll: boolean,
+  catParam: string,
+  qParam: string,
+  trustParam: TrustUrlFilter
+): string {
+  if (catParam) {
+    const base = categoryLabel(catParam);
+    return trustParam ? `${base} · ${trustFilterHeading(trustParam)}` : base;
+  }
+  if (qParam) {
+    return trustParam ? `Search results · ${trustFilterHeading(trustParam)}` : "Search results";
+  }
+  if (browseAll) {
+    return trustParam ? `All components · ${trustFilterHeading(trustParam)}` : "All components";
+  }
+  if (trustParam) {
+    return `${trustFilterHeading(trustParam)} templates`;
+  }
+  return "Components";
+}
+
 function StatBox({
   value,
   label,
   hint,
+  onClick,
+  pressed,
 }: {
   value: string;
   label: string;
   hint: string;
+  onClick?: () => void;
+  pressed?: boolean;
 }) {
-  return (
-    <div
-      style={{
-        padding: "20px 18px",
-        borderRadius: "var(--radius)",
-        border: "1px solid var(--border)",
-        background: "linear-gradient(160deg, var(--bg-card) 0%, rgba(124, 58, 237, 0.06) 100%)",
-      }}
-    >
+  const boxStyle: CSSProperties = {
+    padding: "20px 18px",
+    borderRadius: "var(--radius)",
+    border: `1px solid ${pressed ? "var(--accent-bright)" : "var(--border)"}`,
+    background: pressed
+      ? "linear-gradient(160deg, rgba(124, 58, 237, 0.18) 0%, rgba(34, 211, 238, 0.06) 100%)"
+      : "linear-gradient(160deg, var(--bg-card) 0%, rgba(124, 58, 237, 0.06) 100%)",
+    cursor: onClick ? "pointer" : undefined,
+    textAlign: "left" as const,
+  };
+
+  const inner = (
+    <>
       <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.03em" }}>{value}</div>
       <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>{label}</div>
       <div style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 4 }}>{hint}</div>
-    </div>
+    </>
   );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-pressed={pressed}
+        style={{ ...boxStyle, color: "var(--text)", font: "inherit" }}
+      >
+        {inner}
+      </button>
+    );
+  }
+
+  return <div style={boxStyle}>{inner}</div>;
 }
