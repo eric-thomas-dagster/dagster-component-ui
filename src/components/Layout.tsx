@@ -146,6 +146,13 @@ export function Layout({ children }: { children: ReactNode }) {
             >
               AI assistants
             </Link>
+            <Link
+              to="/dagster-plus"
+              style={navPillStyle(loc.pathname === "/dagster-plus")}
+              title="Deploy catalog components to Dagster+ (guide from the CLI repo)"
+            >
+              Dagster+
+            </Link>
             {nav.map((item) =>
               "to" in item ? (
                 <Link
