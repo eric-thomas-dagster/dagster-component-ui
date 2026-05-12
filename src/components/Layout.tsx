@@ -4,20 +4,16 @@ import { Search } from "lucide-react";
 import { useCatalog } from "../context/CatalogContext";
 import { ThemeToggle } from "./ThemeToggle";
 
-type NavItem =
-  | { to: string; label: string }
-  | { href: string; label: string; external: true };
+type ExternalNavItem = { href: string; label: string };
 
 const DAGSTER_LOGO_URL =
   "https://cdn.prod.website-files.com/681399f654933b29e12fb8bd/681399f654933b29e12fb8e1_Dagster%20Logo.avif";
 
-const nav: NavItem[] = [
-  { to: "/", label: "Registry" },
-  { href: "https://docs.dagster.io", label: "Docs", external: true },
+const externalNav: ExternalNavItem[] = [
+  { href: "https://docs.dagster.io", label: "Docs" },
   {
     href: "https://github.com/eric-thomas-dagster/dagster-component-templates",
     label: "GitHub",
-    external: true,
   },
 ];
 
@@ -36,7 +32,6 @@ function navPillStyle(active: boolean): CSSProperties {
 
 export function Layout({ children }: { children: ReactNode }) {
   const loc = useLocation();
-  const onRegistry = loc.pathname === "/";
   const { openSearchPalette } = useCatalog();
 
   return (
@@ -153,43 +148,24 @@ export function Layout({ children }: { children: ReactNode }) {
             >
               Dagster+
             </Link>
-            {nav.map((item) =>
-              "to" in item ? (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  style={{
-                    padding: "8px 14px",
-                    borderRadius: 8,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: onRegistry && item.to === "/" ? "var(--text)" : "var(--text-muted)",
-                    background:
-                      onRegistry && item.to === "/" ? "rgba(124, 58, 237, 0.15)" : "transparent",
-                    textDecoration: "none",
-                  }}
-                >
-                  {item.label}
-                </Link>
-              ) : (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{
-                    padding: "8px 14px",
-                    borderRadius: 8,
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: "var(--text-muted)",
-                    textDecoration: "none",
-                  }}
-                >
-                  {item.label}
-                </a>
-              )
-            )}
+            {externalNav.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: 8,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: "var(--text-muted)",
+                  textDecoration: "none",
+                }}
+              >
+                {item.label}
+              </a>
+            ))}
           </nav>
         </div>
       </header>

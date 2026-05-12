@@ -10,20 +10,18 @@ export const COMMUNITY_CLI_VALUE_PROP =
 export const REGISTRY_DAGSTER_SPEC = ">=1.10.0";
 export const REGISTRY_PYTHON_SPEC = ">=3.10";
 
+import { COMMUNITY_CLI_EXAMPLES_RAW_BASE } from "../data/examplesCatalog";
+
 export const COMMUNITY_CLI_REPO_WEB =
   "https://github.com/eric-thomas-dagster/dagster-community-components-cli";
-/** Raw root for files at repo top level (not under `examples/`). */
-export const COMMUNITY_CLI_RAW_ROOT =
-  "https://raw.githubusercontent.com/eric-thomas-dagster/dagster-community-components-cli/main";
-
 export const COMMUNITY_CLI_DEPLOY_DAGSTER_PLUS_MD_RAW =
-  `${COMMUNITY_CLI_RAW_ROOT}/deploy_to_dagster_plus.md`;
+  `${COMMUNITY_CLI_EXAMPLES_RAW_BASE}/deploy_to_dagster_plus.md`;
 export const COMMUNITY_CLI_DEPLOY_DAGSTER_PLUS_BLOB_WEB =
-  `${COMMUNITY_CLI_REPO_WEB}/blob/main/deploy_to_dagster_plus.md`;
+  `${COMMUNITY_CLI_REPO_WEB}/blob/main/examples/deploy_to_dagster_plus.md`;
 export const COMMUNITY_CLI_DEPLOY_DAGSTER_PLUS_SCRIPT_RAW =
-  `${COMMUNITY_CLI_RAW_ROOT}/deploy_to_dagster_plus.sh`;
+  `${COMMUNITY_CLI_EXAMPLES_RAW_BASE}/deploy_to_dagster_plus.sh`;
 export const COMMUNITY_CLI_DEPLOY_DAGSTER_PLUS_SCRIPT_BLOB_WEB =
-  `${COMMUNITY_CLI_REPO_WEB}/blob/main/deploy_to_dagster_plus.sh`;
+  `${COMMUNITY_CLI_REPO_WEB}/blob/main/examples/deploy_to_dagster_plus.sh`;
 /** Maintainer docs; avoid duplicating install ladders on this site. */
 export const COMMUNITY_CLI_README_WEB =
   "https://github.com/eric-thomas-dagster/dagster-community-components-cli/blob/main/README.md";

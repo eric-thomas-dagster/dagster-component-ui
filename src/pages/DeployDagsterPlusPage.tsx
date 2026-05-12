@@ -114,11 +114,12 @@ export function DeployDagsterPlusPage() {
             </h1>
           </div>
           <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.55 }}>
-            This guide is maintained in{" "}
+            This guide is maintained in the{" "}
             <a href={COMMUNITY_CLI_REPO_WEB} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
               dagster-community-components-cli
-            </a>
-            . The registry mirrors the Markdown here so you can read it next to templates and examples.
+            </a>{" "}
+            repo under <span className="mono">examples/</span>. The registry mirrors the Markdown here so you can read
+            it next to templates and demos.
           </p>
         </div>
       </div>
