@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { docMarkdownRemarkPlugins, docMarkdownRehypePlugins } from "../lib/markdownPlugins";
 
 type Props = { children: string; className?: string };
 
@@ -11,7 +11,8 @@ export function ExamplesMarkdown({ children, className }: Props) {
   return (
     <div className={className ?? "doc-viewer-markdown"} style={{ fontSize: 15 }}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={docMarkdownRemarkPlugins}
+        rehypePlugins={docMarkdownRehypePlugins}
         components={{
           a: ({ href, children: ch, ...rest }) => {
             if (href?.startsWith("http://") || href?.startsWith("https://")) {

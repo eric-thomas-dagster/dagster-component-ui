@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { docMarkdownRemarkPlugins, docMarkdownRehypePlugins } from "../lib/markdownPlugins";
 
 type Props = { url: string };
 
@@ -56,13 +56,19 @@ export function ComponentReadme({ url }: Props) {
   return (
     <div className="doc-viewer-markdown" style={{ fontSize: 15 }}>
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={docMarkdownRemarkPlugins}
+        rehypePlugins={docMarkdownRehypePlugins}
         components={{
-          a: ({ href, children, ...rest }) => (
-            <a href={href} target="_blank" rel="noreferrer" {...rest}>
-              {children}
-            </a>
-          ),
+          a: ({ href, children, ...rest }) =>
+            href?.startsWith("#") ? (
+              <a href={href} {...rest}>
+                {children}
+              </a>
+            ) : (
+              <a href={href} target="_blank" rel="noreferrer" {...rest}>
+                {children}
+              </a>
+            ),
         }}
       >
         {content}

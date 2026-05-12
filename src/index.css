@@ -250,6 +250,8 @@ button:focus-visible {
   letter-spacing: -0.02em;
   line-height: 1.25;
   color: var(--text);
+  /* Sticky site header (~56px): keep fragment scroll targets visible */
+  scroll-margin-top: 72px;
 }
 
 .doc-viewer-markdown h1 {

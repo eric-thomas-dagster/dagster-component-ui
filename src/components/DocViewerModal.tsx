@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { docMarkdownRemarkPlugins, docMarkdownRehypePlugins } from "../lib/markdownPlugins";
 import { ExternalLink, X } from "lucide-react";
 
 export type DocViewerKind = "markdown" | "json" | "text";
@@ -189,13 +189,19 @@ export function DocViewerModal({ open, onClose, title, url, kind }: Props) {
           {content != null && !loading && !error && kind === "markdown" && (
             <div className="doc-viewer-markdown">
               <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
+                remarkPlugins={docMarkdownRemarkPlugins}
+                rehypePlugins={docMarkdownRehypePlugins}
                 components={{
-                  a: ({ href, children, ...rest }) => (
-                    <a href={href} target="_blank" rel="noreferrer" {...rest}>
-                      {children}
-                    </a>
-                  ),
+                  a: ({ href, children, ...rest }) =>
+                    href?.startsWith("#") ? (
+                      <a href={href} {...rest}>
+                        {children}
+                      </a>
+                    ) : (
+                      <a href={href} target="_blank" rel="noreferrer" {...rest}>
+                        {children}
+                      </a>
+                    ),
                 }}
               >
                 {content}
