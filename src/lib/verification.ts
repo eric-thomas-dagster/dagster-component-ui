@@ -200,6 +200,67 @@ export function countVerificationBreakdown(components: ManifestComponent[]): {
   };
 }
 
+/** Counts resolved trust status per template (see `resolveVerification`). */
+export type TrustSignalHistogram = {
+  total: number;
+  validatedCode: number;
+  validatedInfra: number;
+  validatedLive: number;
+  ciSmoke: number;
+  manualSpotCheck: number;
+  communityOk: number;
+  knownIssue: number;
+  unverified: number;
+};
+
+export function countTrustSignalHistogram(components: ManifestComponent[]): TrustSignalHistogram {
+  const h: TrustSignalHistogram = {
+    total: components.length,
+    validatedCode: 0,
+    validatedInfra: 0,
+    validatedLive: 0,
+    ciSmoke: 0,
+    manualSpotCheck: 0,
+    communityOk: 0,
+    knownIssue: 0,
+    unverified: 0,
+  };
+  for (const c of components) {
+    const { status } = resolveVerification(c);
+    switch (status) {
+      case "validated_code":
+        h.validatedCode += 1;
+        break;
+      case "validated_infra":
+        h.validatedInfra += 1;
+        break;
+      case "validated_live":
+        h.validatedLive += 1;
+        break;
+      case "ci_smoke":
+        h.ciSmoke += 1;
+        break;
+      case "manual_spot_check":
+        h.manualSpotCheck += 1;
+        break;
+      case "community_reported_working":
+        h.communityOk += 1;
+        break;
+      case "known_issue":
+        h.knownIssue += 1;
+        break;
+      case "not_recorded":
+        h.unverified += 1;
+        break;
+      default: {
+        const _exhaustive: never = status;
+        void _exhaustive;
+      }
+    }
+  }
+  return h;
+}
+
 export function communityHelpfulCount(c: ManifestComponent): number {
   const n = c.community_signals?.helpful_count;
   if (typeof n !== "number" || n < 0) return 0;
@@ -207,11 +268,33 @@ export function communityHelpfulCount(c: ManifestComponent): number {
 }
 
 /** URL `?trust=` values; empty means no filter. */
-export type TrustUrlFilter = "" | "live" | "infra" | "code" | "validated" | "verified" | "issue";
+export type TrustUrlFilter =
+  | ""
+  | "live"
+  | "infra"
+  | "code"
+  | "validated"
+  | "verified"
+  | "issue"
+  | "ci"
+  | "manual"
+  | "community"
+  | "unverified";
 
 export function normalizeTrustFilterParam(raw: string | null | undefined): TrustUrlFilter {
   const v = (raw ?? "").trim().toLowerCase();
-  if (v === "live" || v === "infra" || v === "code" || v === "validated" || v === "verified" || v === "issue") {
+  if (
+    v === "live" ||
+    v === "infra" ||
+    v === "code" ||
+    v === "validated" ||
+    v === "verified" ||
+    v === "issue" ||
+    v === "ci" ||
+    v === "manual" ||
+    v === "community" ||
+    v === "unverified"
+  ) {
     return v;
   }
   return "";
@@ -235,6 +318,14 @@ export function componentMatchesTrustUrlFilter(c: ManifestComponent, filter: Tru
       return status !== "not_recorded" && status !== "known_issue";
     case "issue":
       return status === "known_issue";
+    case "ci":
+      return status === "ci_smoke";
+    case "manual":
+      return status === "manual_spot_check";
+    case "community":
+      return status === "community_reported_working";
+    case "unverified":
+      return status === "not_recorded";
     default:
       return true;
   }
@@ -254,6 +345,14 @@ export function trustFilterHeading(filter: TrustUrlFilter): string {
       return "With trust signal";
     case "issue":
       return "Known issue";
+    case "ci":
+      return "CI recorded";
+    case "manual":
+      return "Manual check";
+    case "community":
+      return "Community OK";
+    case "unverified":
+      return "Unverified";
     default:
       return "";
   }

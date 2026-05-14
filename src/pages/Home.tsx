@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import type { ManifestComponent } from "../types";
 import { useCatalog } from "../context/CatalogContext";
@@ -7,7 +7,16 @@ import { componentId } from "../lib/componentId";
 import { matchesQuery, sortByRelevance } from "../lib/search";
 import { categoryLabel, formatDate } from "../lib/format";
 import { countDistinctBrandIntegrations, newestComponents } from "../lib/catalogStats";
-import { countVerificationBreakdown, componentMatchesTrustUrlFilter, normalizeTrustFilterParam, trustFilterHeading, TRUST_FILTER_CHIPS, type TrustUrlFilter } from "../lib/verification";
+import {
+  countTrustSignalHistogram,
+  countVerificationBreakdown,
+  componentMatchesTrustUrlFilter,
+  normalizeTrustFilterParam,
+  trustFilterHeading,
+  TRUST_FILTER_CHIPS,
+  type TrustSignalHistogram,
+  type TrustUrlFilter,
+} from "../lib/verification";
 import { PopularCategoryCard } from "../components/PopularCategoryCard";
 import { REGISTRY_DAGSTER_SPEC, UV_INSTALL_DOCS } from "../lib/registryRequirements";
 
@@ -110,6 +119,7 @@ export function Home() {
   } = useCatalog();
   const [catalogRefreshBusy, setCatalogRefreshBusy] = useState(false);
   const [localQ, setLocalQ] = useState(qParam);
+  const catalogResultsRef = useRef<HTMLElement | null>(null);
 
   const refreshCatalogNow = useCallback(async () => {
     setCatalogRefreshBusy(true);
@@ -141,6 +151,7 @@ export function Home() {
   const newestInCatalog = useMemo(() => newestComponents(components, 6), [components]);
 
   const trustBreakdown = useMemo(() => countVerificationBreakdown(components), [components]);
+  const trustHistogram = useMemo(() => countTrustSignalHistogram(components), [components]);
 
   const popularCategorySamples = useMemo(() => {
     const byCat = new Map<string, ManifestComponent>();
@@ -182,6 +193,14 @@ export function Home() {
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [qParam, catParam, browseAll, trustParam]);
+
+  useEffect(() => {
+    if (!explorationActive) return;
+    const id = requestAnimationFrame(() => {
+      catalogResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [explorationActive, qParam, catParam, browseAll, trustParam]);
 
   const visiblePage = useMemo(
     () => filtered.slice(0, visibleCount),
@@ -262,6 +281,130 @@ export function Home() {
   const total = components.length;
   const catCount = categoryCounts.length;
 
+  const catalogExploration = explorationActive ? (
+    <section
+      ref={catalogResultsRef}
+      id="catalog-results"
+      style={{ maxWidth: 1200, margin: "0 auto", padding: "8px 24px 40px" }}
+      aria-label="Filtered component templates"
+    >
+      <div
+        style={{
+          fontSize: 12,
+          fontWeight: 600,
+          letterSpacing: "0.1em",
+          textTransform: "uppercase",
+          color: "var(--cyan)",
+          marginBottom: 8,
+        }}
+      >
+        Filtered templates
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em" }}>
+          {explorationSectionTitle(browseAll, catParam, qParam, trustParam)}
+          <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 16 }}>
+            {" "}
+            ({filtered.length}
+            {filtered.length !== total ? ` of ${total}` : ""})
+          </span>
+        </h2>
+        <button
+          type="button"
+          onClick={() => {
+            setLocalQ("");
+            setParams(new URLSearchParams());
+          }}
+          style={{
+            background: "transparent",
+            border: "1px solid var(--border)",
+            color: "var(--text-muted)",
+            padding: "8px 14px",
+            borderRadius: 8,
+            fontSize: 13,
+          }}
+        >
+          Back to discovery
+        </button>
+      </div>
+      {(qParam || trustParam) && (
+        <p
+          style={{
+            color: "var(--text-muted)",
+            fontSize: 14,
+            marginTop: -8,
+            marginBottom: 16,
+            lineHeight: 1.5,
+          }}
+        >
+          {qParam ? (
+            <>
+              Matching <span className="mono">{qParam}</span>
+            </>
+          ) : null}
+          {qParam && trustParam ? " · " : null}
+          {trustParam ? (
+            <>
+              Trust: <strong style={{ color: "var(--text)" }}>{trustFilterHeading(trustParam)}</strong>
+              {" — "}
+              <button
+                type="button"
+                onClick={() => setTrustFilter("")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  color: "var(--cyan)",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  textDecoration: "underline",
+                }}
+              >
+                Clear trust filter
+              </button>
+            </>
+          ) : null}
+        </p>
+      )}
+      {!total ? (
+        <p style={{ color: "var(--text-muted)" }}>Loading catalog…</p>
+      ) : (
+        <>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+              gap: 16,
+            }}
+          >
+            {visiblePage.map((c) => (
+              <ComponentCard key={componentId(c)} c={c} />
+            ))}
+          </div>
+          {hasMore && (
+            <div style={{ marginTop: 28, textAlign: "center" }}>
+              <button
+                type="button"
+                onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+                style={{
+                  padding: "12px 28px",
+                  borderRadius: 12,
+                  border: "1px solid var(--border)",
+                  background: "var(--bg-card)",
+                  color: "var(--text)",
+                  fontWeight: 600,
+                  fontSize: 15,
+                }}
+              >
+                Load more ({filtered.length - visibleCount} remaining)
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  ) : null;
+
   return (
     <>
       <section style={{ padding: "48px 24px 32px", maxWidth: 1200, margin: "0 auto" }}>
@@ -312,6 +455,12 @@ export function Home() {
           </a>{" "}
           first) and <span className="mono">dagster{REGISTRY_DAGSTER_SPEC}</span> for your code location.
         </p>
+
+        <TrustSignalsDetailCard
+          histogram={trustHistogram}
+          trustParam={trustParam}
+          onPickTrust={(next) => setTrustFilter(trustParam === next ? "" : next)}
+        />
 
         <div
           style={{
@@ -421,6 +570,8 @@ export function Home() {
           </button>
         </form>
       </section>
+
+      {catalogExploration}
 
       <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 32px" }}>
         <h2
@@ -537,6 +688,16 @@ export function Home() {
           <span style={{ fontSize: 13, color: "var(--text-dim)", maxWidth: 420, textAlign: "right", lineHeight: 1.45 }}>
             Every label present in this catalog—including low-volume groups like asset checks—sorted by template count,
             click to filter.
+            {explorationActive ? (
+              <>
+                {" "}
+                <strong style={{ color: "var(--text)" }}>Results</strong> for your selection are in{" "}
+                <a href="#catalog-results" style={{ color: "var(--cyan)", fontWeight: 600, textDecoration: "none" }}>
+                  Filtered templates
+                </a>{" "}
+                at the top of the page.
+              </>
+            ) : null}
           </span>
         </div>
         <div
@@ -591,6 +752,16 @@ export function Home() {
           Thematic shortcuts (not exhaustive). Scroll up for the full{" "}
           <strong style={{ color: "var(--text)" }}>Categories</strong> grid—it lists each label once, including sparse
           ones like asset checks, sources, sinks, and dbt.
+          {explorationActive ? (
+            <>
+              {" "}
+              Matches appear in{" "}
+              <a href="#catalog-results" style={{ color: "var(--cyan)", fontWeight: 600, textDecoration: "none" }}>
+                Filtered templates
+              </a>{" "}
+              at the top of the page.
+            </>
+          ) : null}
         </p>
         <div
           style={{
@@ -628,6 +799,16 @@ export function Home() {
         <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 16px", maxWidth: 680 }}>
           Curated workloads for inspiration; the complete category list—including anything not listed here—is in{" "}
           <strong style={{ color: "var(--text)" }}>Categories</strong> higher on this page.
+          {explorationActive ? (
+            <>
+              {" "}
+              Current matches are in{" "}
+              <a href="#catalog-results" style={{ color: "var(--cyan)", fontWeight: 600, textDecoration: "none" }}>
+                Filtered templates
+              </a>{" "}
+              at the top.
+            </>
+          ) : null}
         </p>
         <div
           style={{
@@ -713,115 +894,190 @@ export function Home() {
           </div>
         </section>
       )}
-
-      {explorationActive && (
-        <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 64px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-            <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em" }}>
-              {explorationSectionTitle(browseAll, catParam, qParam, trustParam)}
-              <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 16 }}>
-                {" "}
-                ({filtered.length}
-                {filtered.length !== total ? ` of ${total}` : ""})
-              </span>
-            </h2>
-            <button
-              type="button"
-              onClick={() => {
-                setLocalQ("");
-                setParams(new URLSearchParams());
-              }}
-              style={{
-                background: "transparent",
-                border: "1px solid var(--border)",
-                color: "var(--text-muted)",
-                padding: "8px 14px",
-                borderRadius: 8,
-                fontSize: 13,
-              }}
-            >
-              Back to discovery
-            </button>
-          </div>
-          {(qParam || trustParam) && (
-            <p
-              style={{
-                color: "var(--text-muted)",
-                fontSize: 14,
-                marginTop: -8,
-                marginBottom: 16,
-                lineHeight: 1.5,
-              }}
-            >
-              {qParam ? (
-                <>
-                  Matching <span className="mono">{qParam}</span>
-                </>
-              ) : null}
-              {qParam && trustParam ? " · " : null}
-              {trustParam ? (
-                <>
-                  Trust: <strong style={{ color: "var(--text)" }}>{trustFilterHeading(trustParam)}</strong>
-                  {" — "}
-                  <button
-                    type="button"
-                    onClick={() => setTrustFilter("")}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      padding: 0,
-                      color: "var(--cyan)",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                      textDecoration: "underline",
-                    }}
-                  >
-                    Clear trust filter
-                  </button>
-                </>
-              ) : null}
-            </p>
-          )}
-          {!total ? (
-            <p style={{ color: "var(--text-muted)" }}>Loading catalog…</p>
-          ) : (
-            <>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                  gap: 16,
-                }}
-              >
-                {visiblePage.map((c) => (
-                  <ComponentCard key={componentId(c)} c={c} />
-                ))}
-              </div>
-              {hasMore && (
-                <div style={{ marginTop: 28, textAlign: "center" }}>
-                  <button
-                    type="button"
-                    onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
-                    style={{
-                      padding: "12px 28px",
-                      borderRadius: 12,
-                      border: "1px solid var(--border)",
-                      background: "var(--bg-card)",
-                      color: "var(--text)",
-                      fontWeight: 600,
-                      fontSize: 15,
-                    }}
-                  >
-                    Load more ({filtered.length - visibleCount} remaining)
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-        </section>
-      )}
     </>
   );
+}
+
+function trustShareLabel(n: number, total: number): string {
+  if (!total) return "—";
+  if (!n) return "0%";
+  return `${Math.round((100 * n) / total)}%`;
+}
+
+function TrustSignalsDetailCard({
+  histogram: h,
+  trustParam,
+  onPickTrust,
+}: {
+  histogram: TrustSignalHistogram;
+  trustParam: TrustUrlFilter;
+  onPickTrust: (filter: Exclude<TrustUrlFilter, "">) => void;
+}) {
+  const total = h.total;
+  const validationRows: {
+    filter: Exclude<TrustUrlFilter, "">;
+    label: string;
+    hint: string;
+    n: number;
+  }[] = [
+    { filter: "code", label: "Code OK", hint: "validation.level code", n: h.validatedCode },
+    { filter: "infra", label: "Infra OK", hint: "validation.level infra", n: h.validatedInfra },
+    { filter: "live", label: "Live OK", hint: "validation.level live", n: h.validatedLive },
+  ];
+  const verificationRows: {
+    filter: Exclude<TrustUrlFilter, "">;
+    label: string;
+    hint: string;
+    n: number;
+  }[] = [
+    { filter: "ci", label: "CI recorded", hint: "verification.status ci_smoke", n: h.ciSmoke },
+    { filter: "manual", label: "Manual check", hint: "verification.status manual_spot_check", n: h.manualSpotCheck },
+    {
+      filter: "community",
+      label: "Community OK",
+      hint: "verification.status community_reported_working",
+      n: h.communityOk,
+    },
+  ];
+  const tailRows: {
+    filter: Exclude<TrustUrlFilter, "">;
+    label: string;
+    hint: string;
+    n: number;
+    tone?: "caution" | "neutral";
+  }[] = [
+    { filter: "issue", label: "Known issue", hint: "verification.status known_issue", n: h.knownIssue, tone: "caution" },
+    {
+      filter: "unverified",
+      label: "Unverified",
+      hint: "No validation tier or positive verification row",
+      n: h.unverified,
+      tone: "neutral",
+    },
+  ];
+
+  const cell = (row: (typeof validationRows)[number] | (typeof verificationRows)[number] | (typeof tailRows)[number]) => {
+    const tone = "tone" in row ? row.tone : undefined;
+    const active = trustParam === row.filter;
+    const disabled = row.n === 0;
+    const borderColor =
+      active ? "var(--accent-bright)" : tone === "caution" ? "rgba(248, 113, 113, 0.45)" : "var(--border)";
+    const bg = active
+      ? "rgba(124, 58, 237, 0.15)"
+      : tone === "caution" && row.n > 0
+        ? "rgba(248, 113, 113, 0.06)"
+        : "var(--bg-card)";
+    return (
+      <button
+        key={row.filter}
+        type="button"
+        title={row.hint}
+        disabled={disabled}
+        onClick={() => onPickTrust(row.filter)}
+        style={{
+          textAlign: "left",
+          padding: "14px 14px 12px",
+          borderRadius: 12,
+          border: `1px solid ${borderColor}`,
+          background: bg,
+          color: "var(--text)",
+          cursor: disabled ? "not-allowed" : "pointer",
+          opacity: disabled ? 0.45 : 1,
+          font: "inherit",
+          minHeight: 92,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+        }}
+      >
+        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", lineHeight: 1.35 }}>{row.label}</div>
+        <div>
+          <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.03em" }}>{total ? row.n : "—"}</div>
+          <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>{trustShareLabel(row.n, total)} of catalog</div>
+        </div>
+      </button>
+    );
+  };
+
+  return (
+    <div
+      style={{
+        maxWidth: 920,
+        margin: "0 0 24px",
+        padding: "20px 20px 18px",
+        borderRadius: "var(--radius)",
+        border: "1px solid var(--border)",
+        background: "linear-gradient(165deg, var(--bg-card) 0%, rgba(34, 211, 238, 0.06) 100%)",
+      }}
+    >
+      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
+        <div>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: 14,
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--cyan)",
+            }}
+          >
+            Trust signals
+          </h2>
+          <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55, maxWidth: 720 }}>
+            How templates resolve after reading <span className="mono">validation.level</span> and{" "}
+            <span className="mono">verification.status</span> in the manifest (each row is one resolved status). This
+            app does not run checks—it only displays what maintainers recorded. Click a cell to filter the catalog.
+          </p>
+        </div>
+        <div style={{ fontSize: 13, color: "var(--text-dim)", alignSelf: "center" }}>
+          <strong style={{ color: "var(--text)" }}>{formatTrustHistogramSummary(total, h)}</strong>
+        </div>
+      </div>
+
+      <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", color: "var(--text-dim)" }}>
+        Catalog validation
+      </p>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+          gap: 10,
+          marginBottom: 16,
+        }}
+      >
+        {validationRows.map((row) => cell(row))}
+      </div>
+
+      <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", color: "var(--text-dim)" }}>
+        Recorded checks
+      </p>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+          gap: 10,
+          marginBottom: 16,
+        }}
+      >
+        {verificationRows.map((row) => cell(row))}
+      </div>
+
+      <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", color: "var(--text-dim)" }}>
+        Status
+      </p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10 }}>
+        {tailRows.map((row) => cell(row))}
+      </div>
+    </div>
+  );
+}
+
+function formatTrustHistogramSummary(total: number, h: TrustSignalHistogram): string {
+  if (!total) return "Loading…";
+  const validated = h.validatedCode + h.validatedInfra + h.validatedLive;
+  const recorded = h.ciSmoke + h.manualSpotCheck + h.communityOk;
+  return `${validated} validated · ${recorded} checked · ${h.unverified} unverified`;
 }
 
 function explorationSectionTitle(
