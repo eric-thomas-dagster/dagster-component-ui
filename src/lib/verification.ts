@@ -340,9 +340,9 @@ export function trustFilterHeading(filter: TrustUrlFilter): string {
     case "code":
       return "Code OK";
     case "validated":
-      return "Validated (code / infra / live)";
+      return "Validation tier";
     case "verified":
-      return "With trust signal";
+      return "Checked or validated";
     case "issue":
       return "Known issue";
     case "ci":
@@ -363,7 +363,15 @@ export const TRUST_FILTER_CHIPS: { trust: Exclude<TrustUrlFilter, "">; label: st
   { trust: "live", label: "Live OK", hint: "validation.level live" },
   { trust: "infra", label: "Infra OK", hint: "validation.level infra" },
   { trust: "code", label: "Code OK", hint: "validation.level code" },
-  { trust: "validated", label: "Any validated", hint: "Code, Infra, or Live OK" },
-  { trust: "verified", label: "Any verified", hint: "CI, manual, community, or validated tier" },
+  {
+    trust: "validated",
+    label: "Validation tier",
+    hint: "manifest validation.level code, infra, or live (any tier)",
+  },
+  {
+    trust: "verified",
+    label: "Checked or validated",
+    hint: "CI, manual, community OK, or validation tier—not unverified-only or known issue",
+  },
   { trust: "issue", label: "Known issues", hint: "Manifest known_issue" },
 ];

@@ -959,8 +959,12 @@ function TrustSignalsStrip({
 }) {
   const total = h.total;
   const validatedSum = h.validatedCode + h.validatedInfra + h.validatedLive;
-  const showValidatedPill = validatedSum > 0;
-  const showVerifiedPill = trustBreakdown.withPositiveSignal > 0;
+  const positiveTrust = trustBreakdown.withPositiveSignal;
+  /** Hide when every template matches—filter would not narrow results (still show if that filter is active). */
+  const showValidatedShortcut =
+    validatedSum > 0 && (validatedSum < total || trustParam === "validated");
+  const showVerifiedShortcut =
+    positiveTrust > 0 && (positiveTrust < total || trustParam === "verified");
   const hasDetailPill =
     h.validatedCode > 0 ||
     h.validatedInfra > 0 ||
@@ -970,7 +974,8 @@ function TrustSignalsStrip({
     h.communityOk > 0 ||
     h.knownIssue > 0 ||
     h.unverified > 0;
-  const showShortcutDivider = (showValidatedPill || showVerifiedPill) && hasDetailPill;
+  const showShortcutDivider =
+    (showValidatedShortcut || showVerifiedShortcut) && hasDetailPill;
 
   const pill = (
     filter: Exclude<TrustUrlFilter, "">,
@@ -1060,8 +1065,22 @@ function TrustSignalsStrip({
         </p>
       )}
       <div style={{ display: "flex", flexWrap: "wrap", gap: compact ? 5 : 8, alignItems: "center", rowGap: compact ? 5 : 8 }}>
-        {pill("validated", "Any validated", validatedSum, "validation.level code, infra, or live")}
-        {pill("verified", "Any trust signal", trustBreakdown.withPositiveSignal, "CI, manual, community, or validated")}
+        {showValidatedShortcut
+          ? pill(
+              "validated",
+              "Validation tier",
+              validatedSum,
+              "Templates with manifest validation.level (code, infra, or live)—same set as Code + Infra + Live below, without picking one tier."
+            )
+          : null}
+        {showVerifiedShortcut
+          ? pill(
+              "verified",
+              "Checked or validated",
+              positiveTrust,
+              "CI smoke, manual check, community OK, or any validation tier—everything except “unverified only” and known issues."
+            )
+          : null}
         {showShortcutDivider ? (
           <span
             style={{
