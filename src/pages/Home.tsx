@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import type { ManifestComponent } from "../types";
 import { useCatalog } from "../context/CatalogContext";
 import { ComponentCard } from "../components/ComponentCard";
@@ -18,6 +18,8 @@ import {
 } from "../lib/verification";
 import { CategoryBrowseDropdown } from "../components/CategoryBrowseDropdown";
 import { REGISTRY_DAGSTER_SPEC, UV_INSTALL_DOCS } from "../lib/registryRequirements";
+import { countExampleIndexEntries } from "../lib/examplesSearch";
+import { fetchExamplesIndexReadmeCached } from "../lib/loadCommunityExamples";
 
 const PAGE_SIZE = 48;
 
@@ -98,6 +100,7 @@ const USE_CASES: { slug: string; title: string; blurb: string }[] = [
 ];
 
 export function Home() {
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const qParam = params.get("q") ?? "";
   const catParam = params.get("category") ?? "";
@@ -119,6 +122,22 @@ export function Home() {
   const [catalogRefreshBusy, setCatalogRefreshBusy] = useState(false);
   const [localQ, setLocalQ] = useState(qParam);
   const catalogResultsRef = useRef<HTMLElement | null>(null);
+  const [examplesIndexCount, setExamplesIndexCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const readme = await fetchExamplesIndexReadmeCached();
+        if (!cancelled) setExamplesIndexCount(countExampleIndexEntries(readme));
+      } catch {
+        if (!cancelled) setExamplesIndexCount(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const refreshCatalogNow = useCallback(async () => {
     setCatalogRefreshBusy(true);
@@ -702,11 +721,10 @@ export function Home() {
           hint="Templates with a recorded positive signal (informational—use trust pills in the hero to filter)"
         />
         <StatBox
-          value={trustBreakdown.knownIssues > 0 ? String(trustBreakdown.knownIssues) : "0"}
-          label="Known issues"
-          hint="Flagged in manifest"
-          onClick={() => setTrustFilter(trustParam === "issue" ? "" : "issue")}
-          pressed={trustParam === "issue"}
+          value={examplesIndexCount === null ? "—" : String(examplesIndexCount)}
+          label="CLI examples"
+          hint="Demos linked from the community CLI examples README (opens the examples index)"
+          onClick={() => navigate("/examples")}
         />
         <StatBox
           value={manifestMeta ? formatDate(manifestMeta.last_updated) : "—"}

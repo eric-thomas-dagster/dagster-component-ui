@@ -25,6 +25,21 @@ export function markdownToSearchPlain(md: string): string {
 
 export type ExampleLinkHit = { slug: string; title: string };
 
+/** Count distinct example pages linked from `examples/README.md` (`[title](*.md)` rows, excluding README self-links). */
+export function countExampleIndexEntries(markdown: string): number {
+  const slugs = new Set<string>();
+  const linkRe = /\[([^\]]*)\]\(([^)]+\.md)\)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = linkRe.exec(markdown)) !== null) {
+    const rawPath = m[2];
+    const tail = rawPath.replace(/^\.\//, "").split("/").pop() ?? rawPath;
+    if (tail.toLowerCase() === "readme.md") continue;
+    const slug = tail.replace(/\.md$/i, "").trim();
+    if (slug) slugs.add(slug);
+  }
+  return slugs.size;
+}
+
 /** Entries that map to in-app `/examples/:slug` routes (from `[text](path.md)` links). */
 export function findExampleLinkHits(markdown: string, q: string): ExampleLinkHit[] {
   const words = queryWords(q);
