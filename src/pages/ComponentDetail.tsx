@@ -51,6 +51,8 @@ import { FieldIoIcon } from "../components/FieldIoIcon";
 import { inferAttributeFieldRole } from "../lib/schemaFieldIo";
 import { componentDisplayName } from "../lib/componentDisplay";
 import { effectiveTemplateUrls } from "../lib/templateUrls";
+import { getCliExamplesForComponent, type CliExampleRef } from "../lib/cliExamplesComponentIndex";
+import { COMMUNITY_CLI_EXAMPLES_INDEX_README_URL } from "../data/examplesCatalog";
 
 const DAGSTER_DOC = "https://docs.dagster.io/";
 
@@ -71,6 +73,8 @@ export function ComponentDetail() {
     url: string;
     kind: DocViewerKind;
   } | null>(null);
+  const [cliDemos, setCliDemos] = useState<CliExampleRef[] | null>(null);
+  const [cliDemosError, setCliDemosError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -104,6 +108,29 @@ export function ComponentDetail() {
         if (!cancelled) setLoading(false);
       }
     })();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setCliDemos(null);
+    setCliDemosError(null);
+    if (!id.trim()) {
+      setCliDemos([]);
+      return;
+    }
+    getCliExamplesForComponent(id)
+      .then((refs) => {
+        if (!cancelled) setCliDemos(refs);
+      })
+      .catch((e) => {
+        if (!cancelled) {
+          setCliDemosError(e instanceof Error ? e.message : "Could not load examples index");
+          setCliDemos([]);
+        }
+      });
     return () => {
       cancelled = true;
     };
@@ -1246,6 +1273,65 @@ export function ComponentDetail() {
           )}
         </>
       )}
+
+      <section
+        style={{
+          marginTop: 40,
+          paddingTop: 28,
+          borderTop: "1px solid var(--border)",
+        }}
+      >
+        <h2 style={{ ...sectionTitleSmall, fontSize: 16, marginBottom: 10 }}>CLI demos using this template</h2>
+        <p style={{ fontSize: 13, color: "var(--text-dim)", margin: "0 0 14px", lineHeight: 1.5 }}>
+          From the community CLI{" "}
+          <a href={COMMUNITY_CLI_EXAMPLES_INDEX_README_URL} rel="noreferrer" target="_blank">
+            examples index
+          </a>
+          . Only demos that list this id in the Components column are shown; some rows only describe counts without
+          template ids.
+        </p>
+        {cliDemosError && (
+          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>{cliDemosError}</p>
+        )}
+        {cliDemos === null && !cliDemosError && (
+          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>Loading related demos…</p>
+        )}
+        {cliDemos && cliDemos.length > 0 && (
+          <>
+            <ul
+              style={{
+                margin: "0 0 12px",
+                paddingLeft: 20,
+                maxHeight: Math.min(
+                  360,
+                  typeof window !== "undefined" ? Math.round(window.innerHeight * 0.35) : 360
+                ),
+                overflowY: "auto",
+                fontSize: 14,
+                lineHeight: 1.55,
+              }}
+            >
+              {cliDemos.map((d) => (
+                <li key={d.slug} style={{ marginBottom: 4 }}>
+                  <Link to={`/examples/${encodeURIComponent(d.slug)}`}>{d.title}</Link>
+                  <span className="mono" style={{ fontSize: 12, color: "var(--text-muted)", marginLeft: 8 }}>
+                    {d.slug}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p style={{ fontSize: 13, color: "var(--text-dim)", margin: 0 }}>
+              <Link to={`/examples?q=${encodeURIComponent(id)}`}>Open examples page filtered for this id</Link>
+            </p>
+          </>
+        )}
+        {cliDemos && cliDemos.length === 0 && !cliDemosError && (
+          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
+            No indexed demos list this template by id. Try{" "}
+            <Link to={`/examples?q=${encodeURIComponent(id)}`}>searching the examples index</Link>.
+          </p>
+        )}
+      </section>
 
       {catalogUpdated && (
         <footer
