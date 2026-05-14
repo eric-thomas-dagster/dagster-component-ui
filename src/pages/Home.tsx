@@ -13,11 +13,10 @@ import {
   componentMatchesTrustUrlFilter,
   normalizeTrustFilterParam,
   trustFilterHeading,
-  TRUST_FILTER_CHIPS,
   type TrustSignalHistogram,
   type TrustUrlFilter,
 } from "../lib/verification";
-import { PopularCategoryCard } from "../components/PopularCategoryCard";
+import { CategoryBrowseDropdown } from "../components/CategoryBrowseDropdown";
 import { REGISTRY_DAGSTER_SPEC, UV_INSTALL_DOCS } from "../lib/registryRequirements";
 
 const PAGE_SIZE = 48;
@@ -285,25 +284,26 @@ export function Home() {
     <section
       ref={catalogResultsRef}
       id="catalog-results"
-      style={{ maxWidth: 1200, margin: "0 auto", padding: "8px 24px 40px" }}
+      style={{ maxWidth: 1200, margin: "0 auto", padding: "4px 24px 32px" }}
       aria-label="Filtered component templates"
     >
-      <div
-        style={{
-          fontSize: 12,
-          fontWeight: 600,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: "var(--cyan)",
-          marginBottom: 8,
-        }}
-      >
-        Filtered templates
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
-        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+        <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, letterSpacing: "-0.02em", lineHeight: 1.25 }}>
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--cyan)",
+              display: "block",
+              marginBottom: 2,
+            }}
+          >
+            Results
+          </span>
           {explorationSectionTitle(browseAll, catParam, qParam, trustParam)}
-          <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 16 }}>
+          <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 14 }}>
             {" "}
             ({filtered.length}
             {filtered.length !== total ? ` of ${total}` : ""})
@@ -319,9 +319,10 @@ export function Home() {
             background: "transparent",
             border: "1px solid var(--border)",
             color: "var(--text-muted)",
-            padding: "8px 14px",
+            padding: "6px 12px",
             borderRadius: 8,
-            fontSize: 13,
+            fontSize: 12,
+            fontWeight: 600,
           }}
         >
           Back to discovery
@@ -331,10 +332,10 @@ export function Home() {
         <p
           style={{
             color: "var(--text-muted)",
-            fontSize: 14,
-            marginTop: -8,
-            marginBottom: 16,
-            lineHeight: 1.5,
+            fontSize: 12,
+            marginTop: -4,
+            marginBottom: 10,
+            lineHeight: 1.45,
           }}
         >
           {qParam ? (
@@ -373,8 +374,8 @@ export function Home() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-              gap: 16,
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: 12,
             }}
           >
             {visiblePage.map((c) => (
@@ -407,172 +408,265 @@ export function Home() {
 
   return (
     <>
-      <section style={{ padding: "48px 24px 32px", maxWidth: 1200, margin: "0 auto" }}>
-        <p
-          style={{
-            fontSize: 13,
-            fontWeight: 600,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            color: "var(--cyan)",
-            margin: "0 0 12px",
-          }}
-        >
-          Template catalog
-        </p>
-        <h1
-          style={{
-            fontSize: "clamp(2rem, 5vw, 2.75rem)",
-            fontWeight: 700,
-            letterSpacing: "-0.03em",
-            margin: "0 0 16px",
-            lineHeight: 1.15,
-            maxWidth: 720,
-          }}
-        >
-          Find the right{" "}
-          <span style={{ color: "var(--accent-bright)" }}>component templates</span> for your pipelines
-        </h1>
-        <p style={{ fontSize: 17, color: "var(--text-muted)", maxWidth: 720, margin: "0 0 10px" }}>
-          Browse community-maintained <strong style={{ color: "var(--text)" }}>component templates</strong>—each
-          folder includes YAML and a <span className="mono">schema.json</span> so you can wire assets with clear
-          metadata. Templates live in GitHub; you copy them into your project (they are not published as PyPI
-          packages per template).
-        </p>
-        <p style={{ fontSize: 15, color: "var(--text-dim)", maxWidth: 720, margin: "0 0 10px" }}>
-          <strong style={{ color: "var(--text)" }}>{catalogTotal || "—"}</strong> templates ·{" "}
-          <strong style={{ color: "var(--text)" }}>{catCount || "—"}</strong> categories ·{" "}
-          <strong style={{ color: "var(--text)" }}>{integrationBrands || "—"}</strong> branded integrations (
-          <span className="mono">si:*</span> icons)
-        </p>
-        <p style={{ fontSize: 13, color: "var(--text-dim)", maxWidth: 720, margin: "0 0 20px", lineHeight: 1.55 }}>
-          <Link to="/get-started" style={{ color: "var(--cyan)", fontWeight: 600, textDecoration: "none" }}>
-            Get started
-          </Link>{" "}
-          covers <span className="mono">uvx</span> (install{" "}
-          <a href={UV_INSTALL_DOCS} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
-            uv
-          </a>{" "}
-          first) and <span className="mono">dagster{REGISTRY_DAGSTER_SPEC}</span> for your code location.
-        </p>
-
-        <TrustSignalsDetailCard
-          histogram={trustHistogram}
-          trustParam={trustParam}
-          onPickTrust={(next) => setTrustFilter(trustParam === next ? "" : next)}
-        />
-
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            gap: 8,
-            marginBottom: 20,
-            maxWidth: 720,
-          }}
-        >
-          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-dim)", marginRight: 4 }}>
-            Try:
-          </span>
-          {QUICK_SEARCHES.map(({ label, q }) => (
-            <button
-              key={q}
-              type="button"
-              onClick={() => runQuickSearch(q)}
+      <section
+        style={{
+          padding: explorationActive ? "12px 24px 8px" : "36px 24px 28px",
+          maxWidth: 1200,
+          margin: "0 auto",
+        }}
+      >
+        {explorationActive ? (
+          <>
+            <div
               style={{
-                padding: "6px 12px",
-                borderRadius: 999,
-                border: "1px solid var(--border)",
-                background: "var(--bg-card)",
-                color: "var(--text-muted)",
-                fontSize: 13,
-                fontWeight: 500,
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "flex-end",
+                justifyContent: "space-between",
+                gap: "8px 16px",
+                marginBottom: 8,
               }}
             >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            gap: 8,
-            marginBottom: 20,
-            maxWidth: 960,
-          }}
-        >
-          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-dim)", marginRight: 4 }}>Trust:</span>
-          {TRUST_FILTER_CHIPS.map(({ trust, label, hint }) => (
-            <button
-              key={trust}
-              type="button"
-              title={hint}
-              onClick={() => setTrustFilter(trustParam === trust ? "" : trust)}
-              style={{
-                padding: "6px 12px",
-                borderRadius: 999,
-                border: `1px solid ${trustParam === trust ? "var(--accent-bright)" : "var(--border)"}`,
-                background: trustParam === trust ? "rgba(124, 58, 237, 0.22)" : "var(--bg-card)",
-                color: trustParam === trust ? "var(--text)" : "var(--text-muted)",
-                fontSize: 13,
-                fontWeight: 500,
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <form onSubmit={onSearchSubmit} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <div className="hero-search-field">
-            <span style={{ color: "var(--text-dim)", fontSize: 18 }} aria-hidden>
-              ⌕
-            </span>
-            <input
-              value={localQ}
-              onChange={(e) => setLocalQ(e.target.value)}
-              placeholder="Search by name, tag, or integration…"
-              style={{
-                flex: 1,
-                border: "none",
-                background: "transparent",
-                color: "var(--text)",
-                fontSize: 15,
-              }}
-              aria-label="Search components"
+              <div style={{ minWidth: 0 }}>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                    color: "var(--cyan)",
+                  }}
+                >
+                  Template catalog
+                </p>
+                <p style={{ margin: "4px 0 0", fontSize: 14, fontWeight: 650, color: "var(--text)", lineHeight: 1.3 }}>
+                  <strong>{catalogTotal || "—"}</strong> templates
+                  <span style={{ color: "var(--text-dim)", fontWeight: 500 }}>
+                    {" "}
+                    · {catCount} categories · {integrationBrands ?? "—"} brands
+                  </span>
+                </p>
+              </div>
+              <Link
+                to="/get-started"
+                style={{ color: "var(--cyan)", fontWeight: 600, fontSize: 12, textDecoration: "none", flexShrink: 0 }}
+              >
+                Get started →
+              </Link>
+            </div>
+            <TrustSignalsStrip
+              compact
+              histogram={trustHistogram}
+              trustBreakdown={trustBreakdown}
+              trustParam={trustParam}
+              onPickTrust={(next) => setTrustFilter(trustParam === next ? "" : next)}
             />
-            <button
-              type="button"
-              onClick={() => openSearchPalette()}
-              className="kbd"
-              title="Open quick search"
+            <form onSubmit={onSearchSubmit} style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <div className="hero-search-field hero-search-field--compact" style={{ flex: "1 1 260px" }}>
+                <span style={{ color: "var(--text-dim)", fontSize: 16 }} aria-hidden>
+                  ⌕
+                </span>
+                <input
+                  value={localQ}
+                  onChange={(e) => setLocalQ(e.target.value)}
+                  placeholder="Search templates…"
+                  style={{
+                    flex: 1,
+                    border: "none",
+                    background: "transparent",
+                    color: "var(--text)",
+                  }}
+                  aria-label="Search components"
+                />
+                <button
+                  type="button"
+                  onClick={() => openSearchPalette()}
+                  className="kbd"
+                  title="Open quick search"
+                >
+                  ⌘K
+                </button>
+              </div>
+              <button
+                type="submit"
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "linear-gradient(135deg, var(--accent) 0%, #5b21b6 100%)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: 14,
+                }}
+              >
+                Search
+              </button>
+            </form>
+          </>
+        ) : (
+          <>
+            <p
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--cyan)",
+                margin: "0 0 10px",
+              }}
             >
-              ⌘K
-            </button>
-          </div>
-          <button
-            type="submit"
+              Template catalog
+            </p>
+            <h1
+              style={{
+                fontSize: "clamp(1.85rem, 4.5vw, 2.5rem)",
+                fontWeight: 700,
+                letterSpacing: "-0.03em",
+                margin: "0 0 12px",
+                lineHeight: 1.15,
+                maxWidth: 720,
+              }}
+            >
+              Find the right{" "}
+              <span style={{ color: "var(--accent-bright)" }}>component templates</span> for your pipelines
+            </h1>
+            <p style={{ fontSize: 16, color: "var(--text-muted)", maxWidth: 720, margin: "0 0 8px" }}>
+              Browse community-maintained <strong style={{ color: "var(--text)" }}>component templates</strong>—each
+              folder includes YAML and a <span className="mono">schema.json</span> so you can wire assets with clear
+              metadata. Templates live in GitHub; you copy them into your project (they are not published as PyPI
+              packages per template).
+            </p>
+            <p style={{ fontSize: 14, color: "var(--text-dim)", maxWidth: 720, margin: "0 0 8px" }}>
+              <strong style={{ color: "var(--text)" }}>{catalogTotal || "—"}</strong> templates ·{" "}
+              <strong style={{ color: "var(--text)" }}>{catCount || "—"}</strong> categories ·{" "}
+              <strong style={{ color: "var(--text)" }}>{integrationBrands || "—"}</strong> branded integrations (
+              <span className="mono">si:*</span> icons)
+            </p>
+            <p style={{ fontSize: 13, color: "var(--text-dim)", maxWidth: 720, margin: "0 0 16px", lineHeight: 1.55 }}>
+              <Link to="/get-started" style={{ color: "var(--cyan)", fontWeight: 600, textDecoration: "none" }}>
+                Get started
+              </Link>{" "}
+              covers <span className="mono">uvx</span> (install{" "}
+              <a href={UV_INSTALL_DOCS} target="_blank" rel="noreferrer" style={{ color: "var(--cyan)" }}>
+                uv
+              </a>{" "}
+              first) and <span className="mono">dagster{REGISTRY_DAGSTER_SPEC}</span> for your code location.
+            </p>
+
+            <TrustSignalsStrip
+              histogram={trustHistogram}
+              trustBreakdown={trustBreakdown}
+              trustParam={trustParam}
+              onPickTrust={(next) => setTrustFilter(trustParam === next ? "" : next)}
+            />
+
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 16,
+                maxWidth: 720,
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-dim)", marginRight: 4 }}>
+                Try:
+              </span>
+              {QUICK_SEARCHES.map(({ label, q }) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => runQuickSearch(q)}
+                  style={{
+                    padding: "6px 12px",
+                    borderRadius: 999,
+                    border: "1px solid var(--border)",
+                    background: "var(--bg-card)",
+                    color: "var(--text-muted)",
+                    fontSize: 13,
+                    fontWeight: 500,
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={onSearchSubmit} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <div className="hero-search-field">
+                <span style={{ color: "var(--text-dim)", fontSize: 18 }} aria-hidden>
+                  ⌕
+                </span>
+                <input
+                  value={localQ}
+                  onChange={(e) => setLocalQ(e.target.value)}
+                  placeholder="Search by name, tag, or integration…"
+                  style={{
+                    flex: 1,
+                    border: "none",
+                    background: "transparent",
+                    color: "var(--text)",
+                    fontSize: 15,
+                  }}
+                  aria-label="Search components"
+                />
+                <button
+                  type="button"
+                  onClick={() => openSearchPalette()}
+                  className="kbd"
+                  title="Open quick search"
+                >
+                  ⌘K
+                </button>
+              </div>
+              <button
+                type="submit"
+                style={{
+                  padding: "12px 22px",
+                  borderRadius: 12,
+                  border: "none",
+                  background: "linear-gradient(135deg, var(--accent) 0%, #5b21b6 100%)",
+                  color: "#fff",
+                  fontWeight: 600,
+                  fontSize: 15,
+                }}
+              >
+                Search
+              </button>
+            </form>
+          </>
+        )}
+      </section>
+
+      {explorationActive ? (
+        <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 4px" }}>
+          <h2
             style={{
-              padding: "12px 22px",
-              borderRadius: 12,
-              border: "none",
-              background: "linear-gradient(135deg, var(--accent) 0%, #5b21b6 100%)",
-              color: "#fff",
-              fontWeight: 600,
-              fontSize: 15,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--text-dim)",
+              margin: "0 0 6px",
             }}
           >
-            Search
-          </button>
-        </form>
-      </section>
+            Category
+          </h2>
+          <CategoryBrowseDropdown
+            categoryCounts={categoryCounts}
+            samplesByCategory={popularCategorySamples}
+            selectedCategory={catParam}
+            onSelectCategory={(slug) => setCategory(slug)}
+          />
+        </section>
+      ) : null}
 
       {catalogExploration}
 
+      {!explorationActive ? (
+        <>
       <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 32px" }}>
         <h2
           style={{
@@ -681,46 +775,23 @@ export function Home() {
       </div>
 
       <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 32px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12, marginBottom: 12 }}>
           <h2 style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-dim)", margin: 0 }}>
             Categories
           </h2>
-          <span style={{ fontSize: 13, color: "var(--text-dim)", maxWidth: 420, textAlign: "right", lineHeight: 1.45 }}>
-            Every label present in this catalog—including low-volume groups like asset checks—sorted by template count,
-            click to filter.
-            {explorationActive ? (
-              <>
-                {" "}
-                <strong style={{ color: "var(--text)" }}>Results</strong> for your selection are in{" "}
-                <a href="#catalog-results" style={{ color: "var(--cyan)", fontWeight: 600, textDecoration: "none" }}>
-                  Filtered templates
-                </a>{" "}
-                at the top of the page.
-              </>
-            ) : null}
+          <span style={{ fontSize: 13, color: "var(--text-dim)", maxWidth: 480, textAlign: "right", lineHeight: 1.45 }}>
+            Pick a manifest category (sorted by count). Opens a filterable list with icons and template totals.
           </span>
         </div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: 14,
-          }}
-        >
-          {categoryCounts.map(([cat, n]) => (
-            <PopularCategoryCard
-              key={cat}
-              category={cat}
-              count={n}
-              sample={popularCategorySamples.get(cat)}
-              active={catParam === cat}
-              onSelect={() => setCategory(catParam === cat ? "" : cat)}
-            />
-          ))}
-        </div>
+        <CategoryBrowseDropdown
+          categoryCounts={categoryCounts}
+          samplesByCategory={popularCategorySamples}
+          selectedCategory={catParam}
+          onSelectCategory={(slug) => setCategory(slug)}
+        />
       </section>
 
-      {!explorationActive && newestInCatalog.length > 0 && (
+      {newestInCatalog.length > 0 && (
         <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 40px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 12, marginBottom: 16 }}>
             <h2 style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-dim)", margin: 0 }}>
@@ -748,100 +819,67 @@ export function Home() {
         <h2 style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-dim)", margin: "0 0 8px" }}>
           Browse by ecosystem
         </h2>
-        <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 16px", maxWidth: 680 }}>
-          Thematic shortcuts (not exhaustive). Scroll up for the full{" "}
-          <strong style={{ color: "var(--text)" }}>Categories</strong> grid—it lists each label once, including sparse
-          ones like asset checks, sources, sinks, and dbt.
-          {explorationActive ? (
-            <>
-              {" "}
-              Matches appear in{" "}
-              <a href="#catalog-results" style={{ color: "var(--cyan)", fontWeight: 600, textDecoration: "none" }}>
-                Filtered templates
-              </a>{" "}
-              at the top of the page.
-            </>
-          ) : null}
+        <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", maxWidth: 720 }}>
+          Thematic shortcuts (not exhaustive). Use{" "}
+          <strong style={{ color: "var(--text)" }}>Categories</strong> above for the full list.
         </p>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-            gap: 14,
-          }}
-        >
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
           {ECOSYSTEM_TILES.map((u) => (
             <button
               key={u.slug}
               type="button"
+              title={u.blurb}
               onClick={() => setCategory(u.slug)}
               style={{
-                textAlign: "left",
-                padding: 20,
-                borderRadius: "var(--radius)",
-                border: "1px solid var(--border)",
-                background: "linear-gradient(165deg, var(--bg-card) 0%, rgba(34, 211, 238, 0.05) 100%)",
-                color: "var(--text)",
+                padding: "6px 14px",
+                borderRadius: 999,
+                border: `1px solid ${catParam === u.slug ? "var(--accent-bright)" : "var(--border)"}`,
+                background: catParam === u.slug ? "rgba(124, 58, 237, 0.18)" : "var(--bg-card)",
+                color: catParam === u.slug ? "var(--text)" : "var(--text-muted)",
+                fontSize: 13,
+                fontWeight: 600,
                 cursor: "pointer",
               }}
             >
-              <div style={{ fontWeight: 700, marginBottom: 8, fontSize: 16 }}>{u.title}</div>
-              <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.45 }}>{u.blurb}</div>
+              {u.title}
             </button>
           ))}
         </div>
       </section>
 
       <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 48px" }}>
-        <h2 style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-dim)", margin: "0 0 16px" }}>
+        <h2 style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-dim)", margin: "0 0 8px" }}>
           More use cases
         </h2>
-        <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 16px", maxWidth: 680 }}>
-          Curated workloads for inspiration; the complete category list—including anything not listed here—is in{" "}
-          <strong style={{ color: "var(--text)" }}>Categories</strong> higher on this page.
-          {explorationActive ? (
-            <>
-              {" "}
-              Current matches are in{" "}
-              <a href="#catalog-results" style={{ color: "var(--cyan)", fontWeight: 600, textDecoration: "none" }}>
-                Filtered templates
-              </a>{" "}
-              at the top.
-            </>
-          ) : null}
+        <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 12px", maxWidth: 720 }}>
+          Curated workload shortcuts; anything not listed is still under{" "}
+          <strong style={{ color: "var(--text)" }}>Categories</strong>.
         </p>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-            gap: 14,
-          }}
-        >
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
           {USE_CASES.map((u) => (
             <button
               key={u.slug}
               type="button"
+              title={u.blurb}
               onClick={() => setCategory(u.slug)}
               style={{
-                textAlign: "left",
-                padding: 18,
-                borderRadius: "var(--radius)",
-                border: "1px solid var(--border)",
-                background: "var(--bg-card)",
-                color: "var(--text)",
+                padding: "6px 14px",
+                borderRadius: 999,
+                border: `1px solid ${catParam === u.slug ? "var(--accent-bright)" : "var(--border)"}`,
+                background: catParam === u.slug ? "rgba(124, 58, 237, 0.18)" : "var(--bg-card)",
+                color: catParam === u.slug ? "var(--text)" : "var(--text-muted)",
+                fontSize: 13,
+                fontWeight: 600,
                 cursor: "pointer",
               }}
             >
-              <div style={{ fontWeight: 600, marginBottom: 6 }}>{u.title}</div>
-              <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.45 }}>
-                {u.blurb}
-              </div>
+              {u.title}
             </button>
           ))}
         </div>
       </section>
 
-      {!explorationActive && total > 0 && (
+      {total > 0 && (
         <section style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px 48px" }}>
           <h2 style={{ fontSize: 13, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-dim)", margin: "0 0 8px" }}>
             Spotlight
@@ -895,6 +933,8 @@ export function Home() {
         </section>
       )}
     </>
+  ) : null}
+    </>
   );
 }
 
@@ -904,97 +944,63 @@ function trustShareLabel(n: number, total: number): string {
   return `${Math.round((100 * n) / total)}%`;
 }
 
-function TrustSignalsDetailCard({
+function TrustSignalsStrip({
+  compact = false,
   histogram: h,
+  trustBreakdown,
   trustParam,
   onPickTrust,
 }: {
+  compact?: boolean;
   histogram: TrustSignalHistogram;
+  trustBreakdown: { total: number; withPositiveSignal: number };
   trustParam: TrustUrlFilter;
   onPickTrust: (filter: Exclude<TrustUrlFilter, "">) => void;
 }) {
   const total = h.total;
-  const validationRows: {
-    filter: Exclude<TrustUrlFilter, "">;
-    label: string;
-    hint: string;
-    n: number;
-  }[] = [
-    { filter: "code", label: "Code OK", hint: "validation.level code", n: h.validatedCode },
-    { filter: "infra", label: "Infra OK", hint: "validation.level infra", n: h.validatedInfra },
-    { filter: "live", label: "Live OK", hint: "validation.level live", n: h.validatedLive },
-  ];
-  const verificationRows: {
-    filter: Exclude<TrustUrlFilter, "">;
-    label: string;
-    hint: string;
-    n: number;
-  }[] = [
-    { filter: "ci", label: "CI recorded", hint: "verification.status ci_smoke", n: h.ciSmoke },
-    { filter: "manual", label: "Manual check", hint: "verification.status manual_spot_check", n: h.manualSpotCheck },
-    {
-      filter: "community",
-      label: "Community OK",
-      hint: "verification.status community_reported_working",
-      n: h.communityOk,
-    },
-  ];
-  const tailRows: {
-    filter: Exclude<TrustUrlFilter, "">;
-    label: string;
-    hint: string;
-    n: number;
-    tone?: "caution" | "neutral";
-  }[] = [
-    { filter: "issue", label: "Known issue", hint: "verification.status known_issue", n: h.knownIssue, tone: "caution" },
-    {
-      filter: "unverified",
-      label: "Unverified",
-      hint: "No validation tier or positive verification row",
-      n: h.unverified,
-      tone: "neutral",
-    },
-  ];
-
-  const cell = (row: (typeof validationRows)[number] | (typeof verificationRows)[number] | (typeof tailRows)[number]) => {
-    const tone = "tone" in row ? row.tone : undefined;
-    const active = trustParam === row.filter;
-    const disabled = row.n === 0;
-    const borderColor =
-      active ? "var(--accent-bright)" : tone === "caution" ? "rgba(248, 113, 113, 0.45)" : "var(--border)";
-    const bg = active
-      ? "rgba(124, 58, 237, 0.15)"
-      : tone === "caution" && row.n > 0
-        ? "rgba(248, 113, 113, 0.06)"
-        : "var(--bg-card)";
+  const validatedSum = h.validatedCode + h.validatedInfra + h.validatedLive;
+  const pill = (
+    filter: Exclude<TrustUrlFilter, "">,
+    label: string,
+    n: number,
+    hint: string,
+    extra?: { caution?: boolean }
+  ) => {
+    const active = trustParam === filter;
+    const disabled = n === 0;
+    const caution = extra?.caution && n > 0;
+    const fs = compact ? 11 : 13;
+    const pad = compact ? "3px 8px" : "5px 11px";
+    const pctFs = compact ? 9 : 11;
     return (
       <button
-        key={row.filter}
+        key={filter}
         type="button"
-        title={row.hint}
+        title={hint}
         disabled={disabled}
-        onClick={() => onPickTrust(row.filter)}
+        onClick={() => onPickTrust(filter)}
         style={{
-          textAlign: "left",
-          padding: "14px 14px 12px",
-          borderRadius: 12,
-          border: `1px solid ${borderColor}`,
-          background: bg,
+          padding: pad,
+          borderRadius: 999,
+          border: `1px solid ${
+            active ? "var(--accent-bright)" : caution ? "rgba(248, 113, 113, 0.45)" : "var(--border)"
+          }`,
+          background: active
+            ? "rgba(124, 58, 237, 0.2)"
+            : caution
+              ? "rgba(248, 113, 113, 0.08)"
+              : "var(--bg-card)",
           color: "var(--text)",
+          fontSize: fs,
+          fontWeight: 500,
           cursor: disabled ? "not-allowed" : "pointer",
-          opacity: disabled ? 0.45 : 1,
-          font: "inherit",
-          minHeight: 92,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
+          opacity: disabled ? 0.42 : 1,
+          whiteSpace: "nowrap",
         }}
       >
-        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", lineHeight: 1.35 }}>{row.label}</div>
-        <div>
-          <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.03em" }}>{total ? row.n : "—"}</div>
-          <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>{trustShareLabel(row.n, total)} of catalog</div>
-        </div>
+        {label}{" "}
+        <strong style={{ color: "var(--cyan)", fontWeight: 700 }}>{total ? n : "—"}</strong>
+        <span style={{ color: "var(--text-dim)", fontWeight: 400, fontSize: pctFs }}> {trustShareLabel(n, total)}</span>
       </button>
     );
   };
@@ -1002,72 +1008,66 @@ function TrustSignalsDetailCard({
   return (
     <div
       style={{
-        maxWidth: 920,
-        margin: "0 0 24px",
-        padding: "20px 20px 18px",
-        borderRadius: "var(--radius)",
-        border: "1px solid var(--border)",
-        background: "linear-gradient(165deg, var(--bg-card) 0%, rgba(34, 211, 238, 0.06) 100%)",
+        width: "100%",
+        margin: compact ? "0 0 6px" : "4px 0 22px",
+        paddingTop: compact ? 4 : 16,
+        borderTop: compact ? "none" : "1px solid var(--border)",
       }}
     >
-      <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 12, marginBottom: 14 }}>
-        <div>
-          <h2
+      {!compact ? (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            gap: 10,
+            rowGap: 8,
+            marginBottom: 10,
+          }}
+        >
+          <span
             style={{
-              margin: 0,
-              fontSize: 14,
+              fontSize: 12,
               fontWeight: 700,
-              letterSpacing: "0.08em",
+              letterSpacing: "0.1em",
               textTransform: "uppercase",
               color: "var(--cyan)",
             }}
           >
             Trust signals
-          </h2>
-          <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55, maxWidth: 720 }}>
-            How templates resolve after reading <span className="mono">validation.level</span> and{" "}
-            <span className="mono">verification.status</span> in the manifest (each row is one resolved status). This
-            app does not run checks—it only displays what maintainers recorded. Click a cell to filter the catalog.
-          </p>
+          </span>
+          <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Manifest only · click to filter</span>
+          <span style={{ marginLeft: "auto", fontSize: 12, color: "var(--text-muted)" }}>
+            <span className="mono" style={{ color: "var(--text)" }}>
+              {formatTrustHistogramSummary(total, h)}
+            </span>
+          </span>
         </div>
-        <div style={{ fontSize: 13, color: "var(--text-dim)", alignSelf: "center" }}>
-          <strong style={{ color: "var(--text)" }}>{formatTrustHistogramSummary(total, h)}</strong>
-        </div>
-      </div>
-
-      <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", color: "var(--text-dim)" }}>
-        Catalog validation
-      </p>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-          gap: 10,
-          marginBottom: 16,
-        }}
-      >
-        {validationRows.map((row) => cell(row))}
-      </div>
-
-      <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", color: "var(--text-dim)" }}>
-        Recorded checks
-      </p>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-          gap: 10,
-          marginBottom: 16,
-        }}
-      >
-        {verificationRows.map((row) => cell(row))}
-      </div>
-
-      <p style={{ margin: "0 0 8px", fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", color: "var(--text-dim)" }}>
-        Status
-      </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10 }}>
-        {tailRows.map((row) => cell(row))}
+      ) : (
+        <p style={{ margin: "0 0 6px", fontSize: 10, color: "var(--text-dim)", lineHeight: 1.35 }} className="mono">
+          Trust (manifest): {formatTrustHistogramSummary(total, h)}
+        </p>
+      )}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: compact ? 5 : 8, alignItems: "center", rowGap: compact ? 5 : 8 }}>
+        {pill("validated", "Any validated", validatedSum, "validation.level code, infra, or live")}
+        {pill("verified", "Any trust signal", trustBreakdown.withPositiveSignal, "CI, manual, community, or validated")}
+        <span
+          style={{
+            width: 1,
+            height: compact ? 16 : 22,
+            background: "var(--border-strong)",
+            margin: compact ? "0 2px" : "0 4px",
+          }}
+          aria-hidden
+        />
+        {pill("code", "Code OK", h.validatedCode, "validation.level code")}
+        {pill("infra", "Infra OK", h.validatedInfra, "validation.level infra")}
+        {pill("live", "Live OK", h.validatedLive, "validation.level live")}
+        {pill("ci", "CI", h.ciSmoke, "verification.status ci_smoke")}
+        {pill("manual", "Manual", h.manualSpotCheck, "verification.status manual_spot_check")}
+        {pill("community", "Community", h.communityOk, "verification.status community_reported_working")}
+        {pill("issue", "Known issue", h.knownIssue, "verification.status known_issue", { caution: true })}
+        {pill("unverified", "Unverified", h.unverified, "No positive signal recorded")}
       </div>
     </div>
   );

@@ -148,23 +148,6 @@ button:focus-visible {
   transform: translateY(-1px);
 }
 
-.popular-cat-card {
-  transition:
-    border-color 0.18s ease,
-    background 0.18s ease,
-    box-shadow 0.18s ease,
-    transform 0.18s ease;
-}
-
-.popular-cat-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
-}
-
-.popular-cat-card:focus-visible {
-  box-shadow: var(--shadow-md), var(--focus-ring);
-}
-
 .kbd {
   display: inline-block;
   padding: 2px 7px;
@@ -204,6 +187,15 @@ button:focus-visible {
 .hero-search-field:focus-within {
   border-color: var(--accent-bright);
   box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.hero-search-field--compact {
+  padding: 8px 12px;
+  gap: 8px;
+}
+
+.hero-search-field--compact input {
+  font-size: 14px;
 }
 
 .hero-search-field input {
