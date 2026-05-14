@@ -959,6 +959,19 @@ function TrustSignalsStrip({
 }) {
   const total = h.total;
   const validatedSum = h.validatedCode + h.validatedInfra + h.validatedLive;
+  const showValidatedPill = validatedSum > 0;
+  const showVerifiedPill = trustBreakdown.withPositiveSignal > 0;
+  const hasDetailPill =
+    h.validatedCode > 0 ||
+    h.validatedInfra > 0 ||
+    h.validatedLive > 0 ||
+    h.ciSmoke > 0 ||
+    h.manualSpotCheck > 0 ||
+    h.communityOk > 0 ||
+    h.knownIssue > 0 ||
+    h.unverified > 0;
+  const showShortcutDivider = (showValidatedPill || showVerifiedPill) && hasDetailPill;
+
   const pill = (
     filter: Exclude<TrustUrlFilter, "">,
     label: string,
@@ -966,9 +979,9 @@ function TrustSignalsStrip({
     hint: string,
     extra?: { caution?: boolean }
   ) => {
+    if (n === 0) return null;
     const active = trustParam === filter;
-    const disabled = n === 0;
-    const caution = extra?.caution && n > 0;
+    const caution = extra?.caution === true;
     const fs = compact ? 11 : 13;
     const pad = compact ? "3px 8px" : "5px 11px";
     const pctFs = compact ? 9 : 11;
@@ -977,7 +990,6 @@ function TrustSignalsStrip({
         key={filter}
         type="button"
         title={hint}
-        disabled={disabled}
         onClick={() => onPickTrust(filter)}
         style={{
           padding: pad,
@@ -993,8 +1005,7 @@ function TrustSignalsStrip({
           color: "var(--text)",
           fontSize: fs,
           fontWeight: 500,
-          cursor: disabled ? "not-allowed" : "pointer",
-          opacity: disabled ? 0.42 : 1,
+          cursor: "pointer",
           whiteSpace: "nowrap",
         }}
       >
@@ -1051,15 +1062,17 @@ function TrustSignalsStrip({
       <div style={{ display: "flex", flexWrap: "wrap", gap: compact ? 5 : 8, alignItems: "center", rowGap: compact ? 5 : 8 }}>
         {pill("validated", "Any validated", validatedSum, "validation.level code, infra, or live")}
         {pill("verified", "Any trust signal", trustBreakdown.withPositiveSignal, "CI, manual, community, or validated")}
-        <span
-          style={{
-            width: 1,
-            height: compact ? 16 : 22,
-            background: "var(--border-strong)",
-            margin: compact ? "0 2px" : "0 4px",
-          }}
-          aria-hidden
-        />
+        {showShortcutDivider ? (
+          <span
+            style={{
+              width: 1,
+              height: compact ? 16 : 22,
+              background: "var(--border-strong)",
+              margin: compact ? "0 2px" : "0 4px",
+            }}
+            aria-hidden
+          />
+        ) : null}
         {pill("code", "Code OK", h.validatedCode, "validation.level code")}
         {pill("infra", "Infra OK", h.validatedInfra, "validation.level infra")}
         {pill("live", "Live OK", h.validatedLive, "validation.level live")}
