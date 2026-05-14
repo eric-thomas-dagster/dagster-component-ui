@@ -458,7 +458,6 @@ export function Home() {
             <TrustSignalsStrip
               compact
               histogram={trustHistogram}
-              trustBreakdown={trustBreakdown}
               trustParam={trustParam}
               onPickTrust={(next) => setTrustFilter(trustParam === next ? "" : next)}
             />
@@ -556,7 +555,6 @@ export function Home() {
 
             <TrustSignalsStrip
               histogram={trustHistogram}
-              trustBreakdown={trustBreakdown}
               trustParam={trustParam}
               onPickTrust={(next) => setTrustFilter(trustParam === next ? "" : next)}
             />
@@ -701,9 +699,7 @@ export function Home() {
               : "—"
           }
           label="Trust signals"
-          hint="CI, manual, community OK, or validation tier (manifest)"
-          onClick={() => setTrustFilter(trustParam === "verified" ? "" : "verified")}
-          pressed={trustParam === "verified"}
+          hint="Templates with a recorded positive signal (informational—use trust pills in the hero to filter)"
         />
         <StatBox
           value={trustBreakdown.knownIssues > 0 ? String(trustBreakdown.knownIssues) : "0"}
@@ -947,35 +943,15 @@ function trustShareLabel(n: number, total: number): string {
 function TrustSignalsStrip({
   compact = false,
   histogram: h,
-  trustBreakdown,
   trustParam,
   onPickTrust,
 }: {
   compact?: boolean;
   histogram: TrustSignalHistogram;
-  trustBreakdown: { total: number; withPositiveSignal: number };
   trustParam: TrustUrlFilter;
   onPickTrust: (filter: Exclude<TrustUrlFilter, "">) => void;
 }) {
   const total = h.total;
-  const validatedSum = h.validatedCode + h.validatedInfra + h.validatedLive;
-  const positiveTrust = trustBreakdown.withPositiveSignal;
-  /** Hide when every template matches—filter would not narrow results (still show if that filter is active). */
-  const showValidatedShortcut =
-    validatedSum > 0 && (validatedSum < total || trustParam === "validated");
-  const showVerifiedShortcut =
-    positiveTrust > 0 && (positiveTrust < total || trustParam === "verified");
-  const hasDetailPill =
-    h.validatedCode > 0 ||
-    h.validatedInfra > 0 ||
-    h.validatedLive > 0 ||
-    h.ciSmoke > 0 ||
-    h.manualSpotCheck > 0 ||
-    h.communityOk > 0 ||
-    h.knownIssue > 0 ||
-    h.unverified > 0;
-  const showShortcutDivider =
-    (showValidatedShortcut || showVerifiedShortcut) && hasDetailPill;
 
   const pill = (
     filter: Exclude<TrustUrlFilter, "">,
@@ -1065,33 +1041,6 @@ function TrustSignalsStrip({
         </p>
       )}
       <div style={{ display: "flex", flexWrap: "wrap", gap: compact ? 5 : 8, alignItems: "center", rowGap: compact ? 5 : 8 }}>
-        {showValidatedShortcut
-          ? pill(
-              "validated",
-              "Validation tier",
-              validatedSum,
-              "Templates with manifest validation.level (code, infra, or live)—same set as Code + Infra + Live below, without picking one tier."
-            )
-          : null}
-        {showVerifiedShortcut
-          ? pill(
-              "verified",
-              "Checked or validated",
-              positiveTrust,
-              "CI smoke, manual check, community OK, or any validation tier—everything except “unverified only” and known issues."
-            )
-          : null}
-        {showShortcutDivider ? (
-          <span
-            style={{
-              width: 1,
-              height: compact ? 16 : 22,
-              background: "var(--border-strong)",
-              margin: compact ? "0 2px" : "0 4px",
-            }}
-            aria-hidden
-          />
-        ) : null}
         {pill("code", "Code OK", h.validatedCode, "validation.level code")}
         {pill("infra", "Infra OK", h.validatedInfra, "validation.level infra")}
         {pill("live", "Live OK", h.validatedLive, "validation.level live")}

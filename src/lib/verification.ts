@@ -358,20 +358,17 @@ export function trustFilterHeading(filter: TrustUrlFilter): string {
   }
 }
 
-/** Home hero + search palette: filter catalog by resolved verification / validation tier. */
+/**
+ * Search palette (and docs): granular trust filters only.
+ * `validated` / `verified` URL filters remain supported for deep links but are intentionally not promoted as chips.
+ */
 export const TRUST_FILTER_CHIPS: { trust: Exclude<TrustUrlFilter, "">; label: string; hint: string }[] = [
-  { trust: "live", label: "Live OK", hint: "validation.level live" },
-  { trust: "infra", label: "Infra OK", hint: "validation.level infra" },
-  { trust: "code", label: "Code OK", hint: "validation.level code" },
-  {
-    trust: "validated",
-    label: "Validation tier",
-    hint: "manifest validation.level code, infra, or live (any tier)",
-  },
-  {
-    trust: "verified",
-    label: "Checked or validated",
-    hint: "CI, manual, community OK, or validation tier—not unverified-only or known issue",
-  },
+  { trust: "code", label: "Code OK", hint: "manifest validation.level code" },
+  { trust: "infra", label: "Infra OK", hint: "manifest validation.level infra" },
+  { trust: "live", label: "Live OK", hint: "manifest validation.level live" },
+  { trust: "ci", label: "CI", hint: "verification.status ci_smoke" },
+  { trust: "manual", label: "Manual", hint: "verification.status manual_spot_check" },
+  { trust: "community", label: "Community", hint: "verification.status community_reported_working" },
   { trust: "issue", label: "Known issues", hint: "Manifest known_issue" },
+  { trust: "unverified", label: "Unverified", hint: "No positive validation or verification row in manifest" },
 ];
