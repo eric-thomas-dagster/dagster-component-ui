@@ -82,7 +82,7 @@ body {
   min-height: 100vh;
 }
 
-/* Header home link: handwritten “Eric” — masthead uses Dagster wordmark slot (no product logo). */
+/* Header home link: handwritten “Eric’s” — masthead replaces the old product logo slot. */
 .brand-name-eric {
   font-family: "Caveat", cursive;
   font-weight: 700;

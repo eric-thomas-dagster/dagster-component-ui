@@ -78,15 +78,16 @@ export function Layout({ children }: { children: ReactNode }) {
                 minWidth: 0,
               }}
             >
-              <span className="brand-name-eric brand-name-eric--masthead">Eric</span>
+              <span className="brand-name-eric brand-name-eric--masthead">Eric&rsquo;s</span>
               <span
                 style={{
                   fontWeight: 600,
                   letterSpacing: "-0.02em",
                   fontSize: "clamp(12px, 2.1vw, 15px)",
+                  marginLeft: "0.18em",
                 }}
               >
-                &rsquo;s Dagster Component Registry
+                Dagster Component Registry
               </span>
             </span>
           </Link>
