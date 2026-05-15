@@ -6,9 +6,6 @@ import { ThemeToggle } from "./ThemeToggle";
 
 type ExternalNavItem = { href: string; label: string };
 
-const DAGSTER_LOGO_URL =
-  "https://cdn.prod.website-files.com/681399f654933b29e12fb8bd/681399f654933b29e12fb8e1_Dagster%20Logo.avif";
-
 const externalNav: ExternalNavItem[] = [
   { href: "https://docs.dagster.io", label: "Docs" },
   {
@@ -63,43 +60,30 @@ export function Layout({ children }: { children: ReactNode }) {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 10,
+              gap: 0,
               textDecoration: "none",
               color: "var(--text)",
               minWidth: 0,
+              flexShrink: 0,
             }}
           >
-            <img
-              src={DAGSTER_LOGO_URL}
-              alt=""
-              decoding="async"
-              style={{
-                height: 32,
-                width: "auto",
-                maxWidth: 152,
-                objectFit: "contain",
-                objectPosition: "left center",
-                display: "block",
-                flexShrink: 0,
-              }}
-            />
             <span
               style={{
-                display: "flex",
-                flexWrap: "wrap",
+                display: "inline-flex",
+                flexWrap: "nowrap",
                 alignItems: "center",
-                columnGap: 0,
-                rowGap: 2,
-                minWidth: 0,
+                gap: 0,
+                whiteSpace: "nowrap",
                 lineHeight: 1.2,
+                minWidth: 0,
               }}
             >
-              <span className="brand-name-eric">Eric</span>
+              <span className="brand-name-eric brand-name-eric--masthead">Eric</span>
               <span
                 style={{
                   fontWeight: 600,
                   letterSpacing: "-0.02em",
-                  fontSize: "clamp(13px, 2.4vw, 15px)",
+                  fontSize: "clamp(12px, 2.1vw, 15px)",
                 }}
               >
                 &rsquo;s Dagster Component Registry

@@ -82,11 +82,11 @@ body {
   min-height: 100vh;
 }
 
-/* Header home link: handwritten “Eric” for a personal, less-corporate feel */
+/* Header home link: handwritten “Eric” — masthead uses Dagster wordmark slot (no product logo). */
 .brand-name-eric {
   font-family: "Caveat", cursive;
   font-weight: 700;
-  font-size: clamp(1.55rem, 0.9rem + 2.2vw, 1.95rem);
+  font-size: clamp(1.35rem, 0.85rem + 1.6vw, 1.72rem);
   line-height: 1;
   color: var(--brand-eric);
   display: inline-block;
@@ -98,6 +98,12 @@ body {
   text-shadow:
     0.06em 0.08em 0 var(--brand-eric-shadow),
     -0.02em -0.02em 0 color-mix(in srgb, var(--brand-eric) 35%, transparent);
+}
+
+.brand-name-eric--masthead {
+  font-size: clamp(1.55rem, 1rem + 2vw, 2.1rem);
+  margin-right: 0.08em;
+  top: 0.04em;
 }
 
 a {
