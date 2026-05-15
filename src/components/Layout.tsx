@@ -59,13 +59,14 @@ export function Layout({ children }: { children: ReactNode }) {
         >
           <Link
             to="/"
-            aria-label="Component Registry home"
+            aria-label="Eric's Dagster Component Registry home"
             style={{
               display: "flex",
               alignItems: "center",
               gap: 10,
               textDecoration: "none",
               color: "var(--text)",
+              minWidth: 0,
             }}
           >
             <img
@@ -79,9 +80,31 @@ export function Layout({ children }: { children: ReactNode }) {
                 objectFit: "contain",
                 objectPosition: "left center",
                 display: "block",
+                flexShrink: 0,
               }}
             />
-            <span style={{ fontWeight: 600, letterSpacing: "-0.02em" }}>Component Registry</span>
+            <span
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                columnGap: 0,
+                rowGap: 2,
+                minWidth: 0,
+                lineHeight: 1.2,
+              }}
+            >
+              <span className="brand-name-eric">Eric</span>
+              <span
+                style={{
+                  fontWeight: 600,
+                  letterSpacing: "-0.02em",
+                  fontSize: "clamp(13px, 2.4vw, 15px)",
+                }}
+              >
+                &rsquo;s Dagster Component Registry
+              </span>
+            </span>
           </Link>
           <nav style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

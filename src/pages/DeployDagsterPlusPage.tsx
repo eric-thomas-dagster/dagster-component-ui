@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Rocket } from "lucide-react";
+import { Rocket } from "lucide-react";
 import { ExamplesMarkdown } from "../components/ExamplesMarkdown";
 import {
   COMMUNITY_CLI_DEPLOY_DAGSTER_PLUS_BLOB_WEB,
@@ -133,27 +133,6 @@ export function DeployDagsterPlusPage() {
           alignItems: "center",
         }}
       >
-        <a
-          href={COMMUNITY_CLI_DEPLOY_DAGSTER_PLUS_BLOB_WEB}
-          target="_blank"
-          rel="noreferrer"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "8px 14px",
-            borderRadius: 10,
-            border: "1px solid var(--border)",
-            background: "var(--bg-card)",
-            color: "var(--cyan)",
-            fontSize: 13,
-            fontWeight: 600,
-            textDecoration: "none",
-          }}
-        >
-          <ExternalLink size={16} strokeWidth={2} aria-hidden />
-          Edit on GitHub
-        </a>
         <a
           href={COMMUNITY_CLI_DEPLOY_DAGSTER_PLUS_SCRIPT_BLOB_WEB}
           target="_blank"

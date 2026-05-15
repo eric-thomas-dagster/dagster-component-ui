@@ -22,6 +22,8 @@
   --icon-fallback: var(--text-muted);
   --hero-glow-a: rgba(124, 58, 237, 0.22);
   --hero-glow-b: rgba(34, 211, 238, 0.06);
+  --brand-eric: #fb923c;
+  --brand-eric-shadow: rgba(0, 0, 0, 0.35);
 }
 
 [data-theme="light"] {
@@ -48,6 +50,8 @@
   --icon-fallback: var(--text-muted);
   --hero-glow-a: rgba(124, 58, 237, 0.12);
   --hero-glow-b: rgba(8, 145, 178, 0.08);
+  --brand-eric: #c2410c;
+  --brand-eric-shadow: rgba(15, 23, 42, 0.12);
 }
 
 *,
@@ -76,6 +80,24 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+/* Header home link: handwritten “Eric” for a personal, less-corporate feel */
+.brand-name-eric {
+  font-family: "Caveat", cursive;
+  font-weight: 700;
+  font-size: clamp(1.55rem, 0.9rem + 2.2vw, 1.95rem);
+  line-height: 1;
+  color: var(--brand-eric);
+  display: inline-block;
+  transform: rotate(-3deg);
+  margin-right: 0.12em;
+  position: relative;
+  top: 0.06em;
+  letter-spacing: 0.02em;
+  text-shadow:
+    0.06em 0.08em 0 var(--brand-eric-shadow),
+    -0.02em -0.02em 0 color-mix(in srgb, var(--brand-eric) 35%, transparent);
 }
 
 a {
