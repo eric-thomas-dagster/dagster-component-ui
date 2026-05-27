@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Search } from "lucide-react";
+import { BookOpen, Building2, Search } from "lucide-react";
 import { componentDisplayName } from "../lib/componentDisplay";
 import type { ManifestComponent } from "../types";
 import { componentId } from "../lib/componentId";
@@ -8,20 +8,29 @@ import { matchesQuery, sortByRelevance } from "../lib/search";
 import { categoryLabel } from "../lib/format";
 import { ComponentIcon } from "./ComponentIcon";
 import { fetchExamplesIndexReadmeCached } from "../lib/loadCommunityExamples";
+import { fetchVendorsIndexReadmeCached } from "../lib/loadVendors";
 import { TRUST_FILTER_CHIPS, componentMatchesTrustUrlFilter, trustFilterHeading, type TrustUrlFilter } from "../lib/verification";
 import {
   examplesReadmeBodyMatches,
   findExampleLinkHits,
   type ExampleLinkHit,
 } from "../lib/examplesSearch";
+import {
+  findVendorLinkHits,
+  vendorsReadmeBodyMatches,
+  type VendorLinkHit,
+} from "../lib/vendorsSearch";
 
 const MAX_COMPONENT_RESULTS = 50;
 const MAX_EXAMPLE_LINK_RESULTS = 24;
+const MAX_VENDOR_LINK_RESULTS = 16;
 
 type PaletteRow =
   | { kind: "component"; c: ManifestComponent }
   | { kind: "example"; hit: ExampleLinkHit }
-  | { kind: "examples_index" };
+  | { kind: "examples_index" }
+  | { kind: "vendor"; hit: VendorLinkHit }
+  | { kind: "vendors_index" };
 
 export function SearchPalette({
   open,
@@ -39,32 +48,58 @@ export function SearchPalette({
   const [trustFilter, setTrustFilter] = useState<TrustUrlFilter>("");
   const [examplesReadme, setExamplesReadme] = useState<string | null>(null);
   const [examplesLoadState, setExamplesLoadState] = useState<"idle" | "loading" | "ok" | "err">("idle");
+  const [vendorsReadme, setVendorsReadme] = useState<string | null>(null);
+  const [vendorsLoadState, setVendorsLoadState] = useState<"idle" | "loading" | "ok" | "err">("idle");
 
   useEffect(() => {
     if (!open) {
       setExamplesLoadState((s) => (s === "loading" ? "idle" : s));
+      setVendorsLoadState((s) => (s === "loading" ? "idle" : s));
       return;
     }
     if (examplesReadme !== null) {
       setExamplesLoadState("ok");
+    } else {
+      let cancelled = false;
+      setExamplesLoadState("loading");
+      void fetchExamplesIndexReadmeCached()
+        .then((text) => {
+          if (cancelled) return;
+          setExamplesReadme(text);
+          setExamplesLoadState("ok");
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setExamplesLoadState("err");
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+  }, [open, examplesReadme]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (vendorsReadme !== null) {
+      setVendorsLoadState("ok");
       return;
     }
     let cancelled = false;
-    setExamplesLoadState("loading");
-    void fetchExamplesIndexReadmeCached()
+    setVendorsLoadState("loading");
+    void fetchVendorsIndexReadmeCached()
       .then((text) => {
         if (cancelled) return;
-        setExamplesReadme(text);
-        setExamplesLoadState("ok");
+        setVendorsReadme(text);
+        setVendorsLoadState("ok");
       })
       .catch(() => {
         if (cancelled) return;
-        setExamplesLoadState("err");
+        setVendorsLoadState("err");
       });
     return () => {
       cancelled = true;
     };
-  }, [open, examplesReadme]);
+  }, [open, vendorsReadme]);
 
   useEffect(() => {
     if (open) {
@@ -91,8 +126,24 @@ export function SearchPalette({
     return examplesReadmeBodyMatches(examplesReadme, q);
   }, [examplesReadme, q]);
 
+  const vendorLinkHits = useMemo(() => {
+    if (!vendorsReadme || !q.trim()) return [];
+    return findVendorLinkHits(vendorsReadme, q).slice(0, MAX_VENDOR_LINK_RESULTS);
+  }, [vendorsReadme, q]);
+
+  const showVendorsIndexHit = useMemo(() => {
+    if (!vendorsReadme || !q.trim()) return false;
+    return vendorsReadmeBodyMatches(vendorsReadme, q);
+  }, [vendorsReadme, q]);
+
   const rows: PaletteRow[] = useMemo(() => {
     const out: PaletteRow[] = filteredComponents.map((c) => ({ kind: "component", c }));
+    for (const hit of vendorLinkHits) {
+      out.push({ kind: "vendor", hit });
+    }
+    if (showVendorsIndexHit) {
+      out.push({ kind: "vendors_index" });
+    }
     for (const hit of exampleLinkHits) {
       out.push({ kind: "example", hit });
     }
@@ -100,7 +151,13 @@ export function SearchPalette({
       out.push({ kind: "examples_index" });
     }
     return out;
-  }, [filteredComponents, exampleLinkHits, showExamplesIndexHit]);
+  }, [
+    filteredComponents,
+    vendorLinkHits,
+    showVendorsIndexHit,
+    exampleLinkHits,
+    showExamplesIndexHit,
+  ]);
 
   useEffect(() => {
     setHighlight(0);
@@ -128,6 +185,11 @@ export function SearchPalette({
         e.preventDefault();
         if (row.kind === "component") {
           nav(`/c/${encodeURIComponent(componentId(row.c))}`);
+        } else if (row.kind === "vendor") {
+          nav(`/vendors/${encodeURIComponent(row.hit.slug)}`);
+        } else if (row.kind === "vendors_index") {
+          const qq = q.trim();
+          nav(qq ? `/vendors?q=${encodeURIComponent(qq)}` : "/vendors");
         } else if (row.kind === "example") {
           nav(`/examples/${encodeURIComponent(row.hit.slug)}`);
         } else {
@@ -145,15 +207,16 @@ export function SearchPalette({
 
   const qTrim = q.trim();
   const hasActiveFilter = Boolean(qTrim) || Boolean(trustFilter);
-  const examplesStillLoading = examplesLoadState === "loading" && Boolean(qTrim);
-  const empty =
-    rows.length === 0 && components.length > 0 && hasActiveFilter && !examplesStillLoading;
+  const indexStillLoading =
+    Boolean(qTrim) &&
+    (examplesLoadState === "loading" || vendorsLoadState === "loading");
+  const empty = rows.length === 0 && components.length > 0 && hasActiveFilter && !indexStillLoading;
 
   return (
     <div
       role="dialog"
       aria-modal
-      aria-label="Search catalog and examples"
+      aria-label="Search catalog, vendors, and examples"
       style={{
         position: "fixed",
         inset: 0,
@@ -193,7 +256,7 @@ export function SearchPalette({
                 ref={inputRef}
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search templates, tags, examples README, and example pages…"
+                placeholder="Search templates, vendors (Snowflake, Db2, …), examples…"
                 style={{
                   width: "100%",
                   border: "none",
@@ -205,7 +268,7 @@ export function SearchPalette({
                 }}
               />
               <p style={{ margin: 0, fontSize: 12, color: "var(--text-dim)", lineHeight: 1.4 }}>
-                Catalog components plus the live CLI examples index (same keywords search both).
+                Catalog components, vendor landing pages, and the CLI examples index.
               </p>
             </div>
           </div>
@@ -303,15 +366,15 @@ export function SearchPalette({
         >
           {components.length === 0 && !hasActiveFilter ? (
             <li style={{ padding: "20px 14px", color: "var(--text-muted)", fontSize: 14 }}>Loading catalog…</li>
-          ) : examplesStillLoading && rows.length === 0 ? (
+          ) : indexStillLoading && rows.length === 0 ? (
             <li style={{ padding: "20px 14px", color: "var(--text-muted)", fontSize: 14 }}>
-              Loading examples index for search…
+              Loading vendor and examples indexes for search…
             </li>
           ) : empty ? (
             <li style={{ padding: "20px 14px", color: "var(--text-muted)", fontSize: 14, lineHeight: 1.5 }}>
               {qTrim ? (
                 <>
-                  No templates or examples match <span className="mono">{qTrim}</span>
+                  No templates, vendors, or examples match <span className="mono">{qTrim}</span>
                   {trustFilter ? (
                     <>
                       {" "}
@@ -335,6 +398,25 @@ export function SearchPalette({
                   <button
                     type="button"
                     onClick={() => {
+                      nav(`/vendors?q=${encodeURIComponent(qTrim)}`);
+                      onClose();
+                    }}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 0,
+                      color: "var(--cyan)",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      textDecoration: "underline",
+                    }}
+                  >
+                    Browse vendors
+                  </button>
+                  {" · "}
+                  <button
+                    type="button"
+                    onClick={() => {
                       nav(`/examples?q=${encodeURIComponent(qTrim)}`);
                       onClose();
                     }}
@@ -348,15 +430,15 @@ export function SearchPalette({
                       textDecoration: "underline",
                     }}
                   >
-                    Search examples on the full page
+                    Search examples
                   </button>
                 </>
               ) : null}
             </li>
           ) : !hasActiveFilter ? (
             <li style={{ padding: "20px 14px", color: "var(--text-muted)", fontSize: 14, lineHeight: 1.5 }}>
-              Start typing to search the component catalog and CLI examples, or pick a trust chip to narrow templates
-              here.
+              Start typing to search templates, vendor pages (e.g. Precisely, Snowflake), and CLI examples—or pick a
+              trust chip to narrow templates here.
             </li>
           ) : (
             rows.map((row, i) => {
@@ -396,6 +478,84 @@ export function SearchPalette({
                           {categoryLabel(c.category)}
                           {" · "}
                           <span style={{ color: "var(--text-dim)" }}>Template</span>
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              }
+              if (row.kind === "vendor") {
+                const { hit } = row;
+                return (
+                  <li key={`ven-${hit.slug}`}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        nav(`/vendors/${encodeURIComponent(hit.slug)}`);
+                        onClose();
+                      }}
+                      style={{
+                        width: "100%",
+                        textAlign: "left",
+                        border: "none",
+                        borderRadius: 8,
+                        padding: "10px 12px",
+                        background: i === highlight ? "rgba(124, 58, 237, 0.2)" : "transparent",
+                        color: "var(--text)",
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "flex-start",
+                        gap: 10,
+                      }}
+                      onMouseEnter={() => setHighlight(i)}
+                    >
+                      <span style={{ flexShrink: 0, marginTop: 2, color: "var(--accent-bright)" }}>
+                        <Building2 size={22} strokeWidth={2} aria-hidden />
+                      </span>
+                      <span style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+                        <span style={{ fontWeight: 600, fontSize: 14 }}>{hit.title}</span>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                          <span className="mono">/vendors/{hit.slug}</span>
+                          {" · "}
+                          <span style={{ color: "var(--text-dim)" }}>Vendor page</span>
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              }
+              if (row.kind === "vendors_index") {
+                return (
+                  <li key="vendors-readme">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const qq = q.trim();
+                        nav(qq ? `/vendors?q=${encodeURIComponent(qq)}` : "/vendors");
+                        onClose();
+                      }}
+                      style={{
+                        width: "100%",
+                        textAlign: "left",
+                        border: "none",
+                        borderRadius: 8,
+                        padding: "10px 12px",
+                        background: i === highlight ? "rgba(124, 58, 237, 0.2)" : "transparent",
+                        color: "var(--text)",
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "flex-start",
+                        gap: 10,
+                      }}
+                      onMouseEnter={() => setHighlight(i)}
+                    >
+                      <span style={{ flexShrink: 0, marginTop: 2, color: "var(--accent-bright)" }}>
+                        <Building2 size={22} strokeWidth={2} aria-hidden />
+                      </span>
+                      <span style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+                        <span style={{ fontWeight: 600, fontSize: 14 }}>Vendors index (filtered)</span>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                          Open the vendors page with this search · matching sections only
                         </span>
                       </span>
                     </button>

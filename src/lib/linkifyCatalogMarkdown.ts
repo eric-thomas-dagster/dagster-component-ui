@@ -12,6 +12,14 @@ export function catalogDetailHref(id: string): string {
   return `${prefix}/c/${encodeURIComponent(id)}`;
 }
 
+/** Vendor markdown often links to the public registry; rewrite to this deployment. */
+export function rewritePublishedRegistryComponentUrls(markdown: string): string {
+  return markdown.replace(
+    /https:\/\/dagster-component-ui\.vercel\.app\/c\/([a-zA-Z0-9_.-]+)/g,
+    (_m, id: string) => catalogDetailHref(id)
+  );
+}
+
 /**
  * Turn catalog ids in markdown into links to this registry’s component pages.
  * - Backtick-wrapped ids

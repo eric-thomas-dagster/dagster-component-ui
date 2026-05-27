@@ -13,6 +13,8 @@ export function matchesQuery(c: ManifestComponent, q: string): boolean {
     c.category,
     ...(c.tags ?? []),
     c.author,
+    c.vendor,
+    ...(c.vendors ?? []),
   ]
     .join(" ")
     .toLowerCase();

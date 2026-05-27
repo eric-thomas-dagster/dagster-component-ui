@@ -136,6 +136,13 @@ export function Layout({ children }: { children: ReactNode }) {
               Examples
             </Link>
             <Link
+              to="/vendors"
+              style={navPillStyle(loc.pathname.startsWith("/vendors"))}
+              title="Vendor landing pages — components and walkthroughs per platform"
+            >
+              Vendors
+            </Link>
+            <Link
               to="/get-started"
               style={navPillStyle(loc.pathname === "/get-started")}
               title="Install the CLI and add templates (uvx or pip)"

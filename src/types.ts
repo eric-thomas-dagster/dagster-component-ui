@@ -59,6 +59,9 @@ export interface ManifestComponent {
   example_url?: string;
   requirements_url?: string;
   icon?: string;
+  /** Primary vendor for grouping (see templates repo `vendors/` pages). */
+  vendor?: string;
+  vendors?: string[];
   verification?: ManifestVerification;
   /** Catalog validation tier + evidence (preferred when `verification.status` is absent). */
   validation?: ManifestValidation;

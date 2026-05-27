@@ -4,6 +4,8 @@ import { CatalogProvider } from "./context/CatalogContext";
 import { Home } from "./pages/Home";
 import { ExamplesIndex } from "./pages/ExamplesIndex";
 import { ExampleDetail } from "./pages/ExampleDetail";
+import { VendorsIndex } from "./pages/VendorsIndex";
+import { VendorDetail } from "./pages/VendorDetail";
 import { ComponentDetail } from "./pages/ComponentDetail";
 import { GetStartedPage } from "./pages/GetStartedPage";
 import { AiAssistantsPage } from "./pages/AiAssistantsPage";
@@ -20,6 +22,8 @@ export default function App() {
           <Route path="/dagster-plus" element={<DeployDagsterPlusPage />} />
           <Route path="/examples" element={<ExamplesIndex />} />
           <Route path="/examples/:slug" element={<ExampleDetail />} />
+          <Route path="/vendors" element={<VendorsIndex />} />
+          <Route path="/vendors/:slug" element={<VendorDetail />} />
           <Route path="/c/:id" element={<ComponentDetail />} />
         </Routes>
       </Layout>
