@@ -14,6 +14,26 @@ function queryWords(q: string): string[] {
   return q.trim().toLowerCase().split(/\s+/).filter(Boolean);
 }
 
+/** Discovery order: vendor pages → resources → I/O managers → other templates → examples. */
+function rowTier(row: PaletteSearchRow): number {
+  switch (row.kind) {
+    case "vendor":
+      return 5;
+    case "vendors_index":
+      return 4;
+    case "component": {
+      const cat = (row.c.category ?? "").toLowerCase();
+      if (cat === "resource") return 3;
+      if (cat === "io_manager") return 2;
+      return 1;
+    }
+    case "example":
+      return 0;
+    case "examples_index":
+      return 0;
+  }
+}
+
 /** Shared text scoring for landing pages, index rows, and link hits. */
 function scoreTextMatch(q: string, fields: string[]): number {
   const words = queryWords(q);
@@ -55,5 +75,9 @@ export function paletteRowScore(row: PaletteSearchRow, q: string): number {
 export function sortPaletteRows<T extends PaletteSearchRow>(rows: T[], q: string): T[] {
   const s = q.trim().toLowerCase();
   if (!s || rows.length <= 1) return rows;
-  return [...rows].sort((a, b) => paletteRowScore(b, s) - paletteRowScore(a, s));
+  return [...rows].sort((a, b) => {
+    const tierDiff = rowTier(b) - rowTier(a);
+    if (tierDiff !== 0) return tierDiff;
+    return paletteRowScore(b, s) - paletteRowScore(a, s);
+  });
 }

@@ -12,6 +12,8 @@ const CATEGORY_LABEL: Record<string, string> = {
   observation: "Observations",
   check: "Asset checks",
   integration: "Integrations",
+  resource: "Resources",
+  io_manager: "I/O managers",
 };
 
 export function categoryLabel(cat: string): string {
