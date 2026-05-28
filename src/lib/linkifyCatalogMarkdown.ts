@@ -14,10 +14,33 @@ export function catalogDetailHref(id: string): string {
 
 /** Vendor markdown often links to the public registry; rewrite to this deployment. */
 export function rewritePublishedRegistryComponentUrls(markdown: string): string {
-  return markdown.replace(
+  // [`component_id`](vercel) → [component_id](local) — drop code styling inside link text
+  let s = markdown.replace(
+    /\[(`([a-zA-Z0-9_.-]+)`)\]\(https:\/\/dagster-component-ui\.vercel\.app\/c\/([a-zA-Z0-9_.-]+)\)/g,
+    (_m, _quoted, id: string) => `[${id}](${catalogDetailHref(id)})`
+  );
+  s = s.replace(
     /https:\/\/dagster-component-ui\.vercel\.app\/c\/([a-zA-Z0-9_.-]+)/g,
     (_m, id: string) => catalogDetailHref(id)
   );
+  return s;
+}
+
+const LINK_MASK = "\uE000";
+const LINK_MASK_END = "\uE001";
+
+function maskMarkdownLinks(markdown: string): { masked: string; links: string[] } {
+  const links: string[] = [];
+  const masked = markdown.replace(/\[([^\]]*)\]\(([^)]+)\)/g, (match) => {
+    const i = links.length;
+    links.push(match);
+    return `${LINK_MASK}${i}${LINK_MASK_END}`;
+  });
+  return { masked, links };
+}
+
+function unmaskMarkdownLinks(masked: string, links: string[]): string {
+  return masked.replace(new RegExp(`${LINK_MASK}(\\d+)${LINK_MASK_END}`, "g"), (_, i) => links[Number(i)] ?? "");
 }
 
 /**
@@ -26,8 +49,9 @@ export function rewritePublishedRegistryComponentUrls(markdown: string): string 
  * - `dagster-component add <id>` and optional @ref
  */
 export function linkifyCatalogMarkdown(markdown: string, components: ManifestComponent[]): string {
+  const { masked, links } = maskMarkdownLinks(markdown);
   const ids = [...new Set(components.map(componentId).filter(Boolean))].sort((a, b) => b.length - a.length);
-  let s = markdown;
+  let s = masked;
   for (const id of ids) {
     const href = catalogDetailHref(id);
     const esc = escapeRegExp(id);
@@ -45,5 +69,5 @@ export function linkifyCatalogMarkdown(markdown: string, components: ManifestCom
         `${prefix}[${mid}${pin ?? ""}](${href})`
     );
   }
-  return s;
+  return unmaskMarkdownLinks(s, links);
 }
