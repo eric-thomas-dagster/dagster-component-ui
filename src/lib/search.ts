@@ -27,21 +27,25 @@ export function sortByRelevance(
 ): ManifestComponent[] {
   const s = q.trim().toLowerCase();
   if (!s) return list;
-  return [...list].sort((a, b) => score(b, s) - score(a, s));
+  return [...list].sort((a, b) => componentRelevanceScore(b, s) - componentRelevanceScore(a, s));
 }
 
-function score(c: ManifestComponent, q: string): number {
+export function componentRelevanceScore(c: ManifestComponent, q: string): number {
+  const s = q.trim().toLowerCase();
+  if (!s) return 0;
   let n = 0;
   const id = componentId(c).toLowerCase();
   const name = componentDisplayName(c, null).toLowerCase();
-  if (id === q) n += 100;
-  if (id.startsWith(q)) n += 40;
-  if (name.includes(q)) n += 20;
-  if (id.includes(q)) n += 15;
+  if (id === s) n += 100;
+  if (id.startsWith(s)) n += 40;
+  if (name.includes(s)) n += 20;
+  if (id.includes(s)) n += 15;
   for (const t of c.tags ?? []) {
-    if (t.toLowerCase() === q) n += 25;
-    else if (t.toLowerCase().includes(q)) n += 8;
+    if (t.toLowerCase() === s) n += 25;
+    else if (t.toLowerCase().includes(s)) n += 8;
   }
-  if ((c.description ?? "").toLowerCase().includes(q)) n += 5;
+  if ((c.vendor ?? "").toLowerCase() === s) n += 30;
+  if ((c.vendors ?? []).some((v) => v.toLowerCase() === s)) n += 30;
+  if ((c.description ?? "").toLowerCase().includes(s)) n += 5;
   return n;
 }

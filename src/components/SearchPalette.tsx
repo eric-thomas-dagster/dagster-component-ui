@@ -13,24 +13,18 @@ import { TRUST_FILTER_CHIPS, componentMatchesTrustUrlFilter, trustFilterHeading,
 import {
   examplesReadmeBodyMatches,
   findExampleLinkHits,
-  type ExampleLinkHit,
 } from "../lib/examplesSearch";
 import {
   findVendorLinkHits,
   vendorsReadmeBodyMatches,
-  type VendorLinkHit,
 } from "../lib/vendorsSearch";
+import { sortPaletteRows, type PaletteSearchRow } from "../lib/paletteSearchRanking";
 
 const MAX_COMPONENT_RESULTS = 50;
 const MAX_EXAMPLE_LINK_RESULTS = 24;
 const MAX_VENDOR_LINK_RESULTS = 16;
 
-type PaletteRow =
-  | { kind: "component"; c: ManifestComponent }
-  | { kind: "example"; hit: ExampleLinkHit }
-  | { kind: "examples_index" }
-  | { kind: "vendor"; hit: VendorLinkHit }
-  | { kind: "vendors_index" };
+type PaletteRow = PaletteSearchRow;
 
 export function SearchPalette({
   open,
@@ -150,7 +144,7 @@ export function SearchPalette({
     if (showExamplesIndexHit) {
       out.push({ kind: "examples_index" });
     }
-    return out;
+    return sortPaletteRows(out, q);
   }, [
     filteredComponents,
     vendorLinkHits,
