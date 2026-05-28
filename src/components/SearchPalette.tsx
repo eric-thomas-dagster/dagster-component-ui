@@ -515,9 +515,9 @@ export function SearchPalette({
                       <span style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
                         <span style={{ fontWeight: 600, fontSize: 14 }}>{hit.title}</span>
                         <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                          <span className="mono">/vendors/{hit.slug}</span>
+                          <span style={{ color: "var(--text-dim)" }}>Vendor landing page</span>
                           {" · "}
-                          <span style={{ color: "var(--text-dim)" }}>Vendor page</span>
+                          components, validation, walkthroughs
                         </span>
                       </span>
                     </button>
